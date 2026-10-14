@@ -56,6 +56,9 @@ and the old file is left in place as a backup.
 ./gradlew :fabric:build :neoforge:build
 ```
 
+`./gradlew :fabric:runClientGameTest` plays through the mod in a real game (a couple of minutes)
+and fails if anything in the mail flow breaks; CI runs it on every push.
+
 Needs Java 25. Framework comes from MrCrayfish's GitHub Packages Maven, which requires a GitHub
 token with `read:packages` in the `GPR_USER` and `GPR_KEY` environment variables (or `gpr.user`
 and `gpr.key` in your user `gradle.properties`, never in the repo). The porting log and the plan

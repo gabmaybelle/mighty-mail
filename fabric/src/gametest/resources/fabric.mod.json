@@ -1,0 +1,15 @@
+{
+    "schemaVersion": 1,
+    "id": "mighty_mail_gametest",
+    "version": "1.0.0",
+    "name": "Mighty Mail game test",
+    "environment": "*",
+    "entrypoints": {
+        "fabric-client-gametest": [
+            "com.mrcrayfish.mightymail.gametest.MightyMailClientTest"
+        ]
+    },
+    "depends": {
+        "mighty_mail": "*"
+    }
+}

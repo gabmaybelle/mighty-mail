@@ -25,6 +25,16 @@ fabricApi {
         outputDirectory.set(file("src/generated/resources"))
         modId = "${mod_id}"
     }
+    // The in-game test: `./gradlew :fabric:runClientGameTest` starts a real game and plays through
+    // src/gametest (place a mailbox, name it, send a package, deliver, open, break). Nothing there
+    // ships in the jar. CI runs it on every push.
+    configureTests {
+        createSourceSet = true
+        modId = "${mod_id}_gametest"
+        enableGameTests = false
+        enableClientGameTests = true
+        eula = true
+    }
 }
 
 loom {
