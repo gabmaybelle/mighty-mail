@@ -15,7 +15,7 @@ public class ClientPlayHandler
     public static void handleMessageClearMessage(MessageClearMessage message)
     {
         Minecraft mc = Minecraft.getInstance();
-        if(mc.screen instanceof PostBoxScreen postBox)
+        if(mc.gui.screen() instanceof PostBoxScreen postBox)
         {
             postBox.clearMessage();
         }
@@ -24,7 +24,7 @@ public class ClientPlayHandler
     public static void handleMessageShowDeliveryResult(MessageShowDeliveryResult message)
     {
         Minecraft mc = Minecraft.getInstance();
-        if(mc.screen instanceof PostBoxScreen postBox)
+        if(mc.gui.screen() instanceof PostBoxScreen postBox)
         {
             postBox.showResponse(message.result());
         }
