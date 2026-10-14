@@ -136,7 +136,7 @@ public class PostBoxMenu extends AbstractContainerMenu
         return Collections.unmodifiableList(this.mailboxes);
     }
 
-    public record CustomData(Collection<IMailbox> mailboxes) implements IMenuData<CustomData>
+    public record CustomData(Collection<ClientMailbox> mailboxes) implements IMenuData<CustomData>
     {
         public static final StreamCodec<RegistryFriendlyByteBuf, CustomData> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.collection(ArrayList::new, ClientMailbox.STREAM_CODEC),

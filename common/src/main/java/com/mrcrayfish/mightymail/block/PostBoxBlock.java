@@ -7,7 +7,6 @@ import com.mrcrayfish.mightymail.blockentity.PostBoxBlockEntity;
 import com.mrcrayfish.mightymail.client.ClientMailbox;
 import com.mrcrayfish.mightymail.inventory.PostBoxMenu;
 import com.mrcrayfish.mightymail.mail.DeliveryService;
-import com.mrcrayfish.mightymail.mail.IMailbox;
 import com.mrcrayfish.mightymail.util.VoxelShapeHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -90,9 +89,9 @@ public class PostBoxBlock extends RotatedBlock implements EntityBlock
             // Owner names are resolved here with the server, since IMailbox.getOwner() alone is empty server-side
             MinecraftServer server = ((ServerLevel) level).getServer();
             DeliveryService.get(server).ifPresent(service -> {
-                List<IMailbox> mailboxes = service.getMailboxes()
+                List<ClientMailbox> mailboxes = service.getMailboxes()
                     .stream()
-                    .<IMailbox>map(mailbox -> new ClientMailbox(mailbox.getId(), mailbox.getOwner(server), mailbox.getCustomName()))
+                    .map(mailbox -> new ClientMailbox(mailbox.getId(), mailbox.getOwner(server), mailbox.getCustomName()))
                     .toList();
                 FrameworkAPI.openMenuWithData((ServerPlayer) player, postBox, new PostBoxMenu.CustomData(mailboxes));
             });

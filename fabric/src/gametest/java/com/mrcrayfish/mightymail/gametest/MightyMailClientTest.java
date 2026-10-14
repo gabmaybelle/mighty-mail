@@ -61,6 +61,7 @@ public class MightyMailClientTest implements FabricClientGameTest
     private static final BlockPos POST_BOX = new BlockPos(0, 71, 0);
     private static final BlockPos MAILBOX = new BlockPos(3, 71, 0);
     private static final BlockPos SPARE = new BlockPos(-3, 71, 0);
+    private static final BlockPos GHOST = new BlockPos(0, 71, 4);
     private final List<String> failures = new ArrayList<>();
 
     @Override
@@ -238,6 +239,42 @@ public class MightyMailClientTest implements FabricClientGameTest
             this.check(packages == 1 || player(s).getInventory().countItem(ModItems.PACKAGE.get()) == 1, "breaking a mailbox with mail inside drops the package");
             this.check(DeliveryService.get(s).orElseThrow().getMailboxAtPosition(level, SPARE).isEmpty(), "the broken mailbox is gone from the delivery service");
             this.check(DeliveryService.get(s).orElseThrow().getMailboxAtPosition(level, MAILBOX).isPresent(), "the other mailbox is unaffected");
+        });
+        this.vanishedBlock(ctx, server);
+    }
+
+    /**
+     * A mailbox whose block disappears without being broken (a wood mod removed from the world, an
+     * editor, a corrupt chunk) is dropped from the delivery service on the next tick while its chunk
+     * is loaded, and any mail waiting for it is dropped at its position rather than lost.
+     */
+    private void vanishedBlock(ClientGameTestContext ctx, TestServerContext server)
+    {
+        server.runOnServer(s -> {
+            ServerLevel level = s.overworld();
+            placeAsPlayer(level, player(s), GHOST, MailboxWoods.block("spruce").defaultBlockState());
+            DeliveryService service = DeliveryService.get(s).orElseThrow();
+            Mailbox ghost = service.getMailboxAtPosition(level, GHOST).orElseThrow();
+            // Fill the mailbox so the next package has to wait in the queue
+            MailboxBlockEntity entity = (MailboxBlockEntity) level.getBlockEntity(GHOST);
+            for(int i = 0; i < entity.getContainerSize(); i++)
+                entity.setItem(i, new ItemStack(Items.STONE, 64));
+            this.check(service.sendMail(ghost.id(), PackageItem.create(NonNullList.withSize(1, new ItemStack(Items.APPLE)), null, "Test")).success(), "a package queues for a full mailbox");
+        });
+        ctx.waitTicks(10);
+        server.runOnServer(s -> {
+            ServerLevel level = s.overworld();
+            this.check(DeliveryService.get(s).orElseThrow().getMailboxAtPosition(level, GHOST).map(m -> m.queue().size() == 1).orElse(false), "the package waits in the queue while the mailbox is full");
+            // The block and its block entity vanish without the normal break path
+            level.getChunkAt(GHOST).removeBlockEntity(GHOST);
+            level.setBlock(GHOST, Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
+        });
+        ctx.waitTicks(10);
+        server.runOnServer(s -> {
+            ServerLevel level = s.overworld();
+            this.check(DeliveryService.get(s).orElseThrow().getMailboxAtPosition(level, GHOST).isEmpty(), "a mailbox whose block vanished is dropped from the delivery service");
+            boolean dropped = level.getEntitiesOfClass(ItemEntity.class, new AABB(GHOST).inflate(3)).stream().anyMatch(e -> e.getItem().is(ModItems.PACKAGE.get()));
+            this.check(dropped, "the mail that was waiting for it is dropped at its position, not lost");
         });
     }
 

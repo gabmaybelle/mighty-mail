@@ -29,14 +29,14 @@ public record ClientMailbox(UUID id, Optional<NameAndId> owner, Optional<String>
         return new NameAndId(id, name);
     });
 
-    // IMailbox::getOwner here is the no-arg form; PostBoxBlock resolves owner names with the server before sending
-    public static final StreamCodec<RegistryFriendlyByteBuf, IMailbox> STREAM_CODEC = StreamCodec.composite(
+    // The owner's name is resolved by PostBoxBlock with the server before the list is sent
+    public static final StreamCodec<RegistryFriendlyByteBuf, ClientMailbox> STREAM_CODEC = StreamCodec.composite(
         UUIDUtil.STREAM_CODEC,
-        IMailbox::getId,
+        ClientMailbox::id,
         ByteBufCodecs.optional(NAME_AND_ID),
-        IMailbox::getOwner,
+        ClientMailbox::owner,
         ByteBufCodecs.optional(ByteBufCodecs.stringUtf8(256)),
-        IMailbox::getCustomName,
+        ClientMailbox::customName,
         ClientMailbox::new
     );
 
