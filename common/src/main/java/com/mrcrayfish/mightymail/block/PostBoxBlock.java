@@ -2,14 +2,16 @@ package com.mrcrayfish.mightymail.block;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.mojang.serialization.MapCodec;
 import com.mrcrayfish.framework.api.FrameworkAPI;
 import com.mrcrayfish.mightymail.blockentity.PostBoxBlockEntity;
+import com.mrcrayfish.mightymail.client.ClientMailbox;
 import com.mrcrayfish.mightymail.inventory.PostBoxMenu;
 import com.mrcrayfish.mightymail.mail.DeliveryService;
+import com.mrcrayfish.mightymail.mail.IMailbox;
 import com.mrcrayfish.mightymail.util.VoxelShapeHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
@@ -36,8 +38,6 @@ import java.util.stream.Collectors;
  */
 public class PostBoxBlock extends RotatedBlock implements EntityBlock
 {
-    private static final MapCodec<PostBoxBlock> CODEC = simpleCodec(PostBoxBlock::new);
-
     private final Map<BlockState, VoxelShape> shapes;
 
     public PostBoxBlock(Properties properties)
@@ -45,12 +45,6 @@ public class PostBoxBlock extends RotatedBlock implements EntityBlock
         super(properties);
         this.registerDefaultState(this.getStateDefinition().any().setValue(DIRECTION, Direction.NORTH));
         this.shapes = this.generateShapes();
-    }
-
-    @Override
-    protected MapCodec<PostBoxBlock> codec()
-    {
-        return CODEC;
     }
 
     protected Map<BlockState, VoxelShape> generateShapes()
@@ -93,8 +87,14 @@ public class PostBoxBlock extends RotatedBlock implements EntityBlock
     {
         if(!level.isClientSide() && level.getBlockEntity(pos) instanceof PostBoxBlockEntity postBox)
         {
-            DeliveryService.get(((ServerLevel) level).getServer()).ifPresent(service -> {
-                FrameworkAPI.openMenuWithData((ServerPlayer) player, postBox, new PostBoxMenu.CustomData(service.getMailboxes()));
+            // Owner names are resolved here with the server, since IMailbox.getOwner() alone is empty server-side
+            MinecraftServer server = ((ServerLevel) level).getServer();
+            DeliveryService.get(server).ifPresent(service -> {
+                List<IMailbox> mailboxes = service.getMailboxes()
+                    .stream()
+                    .<IMailbox>map(mailbox -> new ClientMailbox(mailbox.getId(), mailbox.getOwner(server), mailbox.getCustomName()))
+                    .toList();
+                FrameworkAPI.openMenuWithData((ServerPlayer) player, postBox, new PostBoxMenu.CustomData(mailboxes));
             });
             return InteractionResult.CONSUME;
         }

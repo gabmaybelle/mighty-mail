@@ -29,8 +29,7 @@ public record ClientMailbox(UUID id, Optional<NameAndId> owner, Optional<String>
         return new NameAndId(id, name);
     });
 
-    // PORT-26.3: IMailbox::getOwner now means getOwner(null), which is empty on the server. PostBoxBlock must map
-    // each Mailbox to a ClientMailbox with getOwner(server) before sending (block package session), as Refurbished does.
+    // IMailbox::getOwner here is the no-arg form; PostBoxBlock resolves owner names with the server before sending
     public static final StreamCodec<RegistryFriendlyByteBuf, IMailbox> STREAM_CODEC = StreamCodec.composite(
         UUIDUtil.STREAM_CODEC,
         IMailbox::getId,

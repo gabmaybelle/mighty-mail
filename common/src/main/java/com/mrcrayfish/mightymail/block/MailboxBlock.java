@@ -2,7 +2,6 @@ package com.mrcrayfish.mightymail.block;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.mojang.serialization.MapCodec;
 import com.mrcrayfish.mightymail.blockentity.MailboxBlockEntity;
 import com.mrcrayfish.mightymail.client.ScreenHooks;
 import com.mrcrayfish.mightymail.mail.DeliveryService;
@@ -44,8 +43,6 @@ import java.util.stream.Collectors;
  */
 public class MailboxBlock extends RotatedBlock implements EntityBlock
 {
-    private static final MapCodec<MailboxBlock> CODEC = simpleCodec(MailboxBlock::new);
-
     public static final BooleanProperty ENABLED = BlockStateProperties.ENABLED;
 
     private final Map<BlockState, VoxelShape> shapes;
@@ -55,12 +52,6 @@ public class MailboxBlock extends RotatedBlock implements EntityBlock
         super(properties);
         this.registerDefaultState(this.getStateDefinition().any().setValue(DIRECTION, Direction.NORTH).setValue(ENABLED, false));
         this.shapes = this.generateShapes();
-    }
-
-    @Override
-    protected MapCodec<MailboxBlock> codec()
-    {
-        return CODEC;
     }
 
     protected Map<BlockState, VoxelShape> generateShapes()
