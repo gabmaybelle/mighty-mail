@@ -2,14 +2,13 @@ package com.mrcrayfish.mightymail.client.gui.screen;
 
 import com.google.common.base.MoreObjects;
 import com.mrcrayfish.mightymail.util.Utils;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.function.Function;
 
@@ -18,7 +17,7 @@ import java.util.function.Function;
  */
 public class TextInputScreen extends Screen
 {
-    private static final ResourceLocation WINDOW_SPRITE = Utils.resource("window");
+    private static final Identifier WINDOW_SPRITE = Utils.resource("window");
     public static final int WINDOW_WIDTH = 160;
     public static final int WINDOW_HEIGHT = 72;
 
@@ -76,30 +75,30 @@ public class TextInputScreen extends Screen
             this.editBox.setValue(this.input);
         }
         this.addRenderableWidget(this.closeButton = Button.builder(Component.literal("Close"), btn -> {
-            this.minecraft.setScreen(null);
+            this.minecraft.gui.setScreen(null);
         }).pos(startX + 6, startY + 45).size((WINDOW_WIDTH - 12) / 2 - 2, 20).build());
         this.addRenderableWidget(this.acceptButton = Button.builder(MoreObjects.firstNonNull(this.acceptLabel, Component.literal("Accept")), btn -> {
             if(this.callback.apply(this.input)) {
-                this.minecraft.setScreen(null);
+                this.minecraft.gui.setScreen(null);
             }
         }).pos(startX + (WINDOW_WIDTH - 12) / 2 + 2 + 6, startY + 45).size((WINDOW_WIDTH - 12) / 2 - 2, 20).build());
     }
 
     @Override
-    public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick)
+    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick)
     {
-        super.renderBackground(graphics, mouseX, mouseY, partialTick);
+        super.extractBackground(graphics, mouseX, mouseY, partialTick);
         int startX = (this.width - WINDOW_WIDTH) / 2;
         int startY = (this.height - WINDOW_HEIGHT) / 2;
         graphics.blitSprite(RenderPipelines.GUI_TEXTURED, WINDOW_SPRITE, startX, startY, WINDOW_WIDTH, WINDOW_HEIGHT);
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick)
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick)
     {
-        super.render(graphics, mouseX, mouseY, partialTick);
+        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
         int startX = (this.width - WINDOW_WIDTH) / 2;
         int startY = (this.height - WINDOW_HEIGHT) / 2;
-        graphics.drawString(this.minecraft.font, this.title, startX + 6, startY + 7, 0xFF404040, false);
+        graphics.text(this.minecraft.font, this.title, startX + 6, startY + 7, 0xFF404040, false);
     }
 }

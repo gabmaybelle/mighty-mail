@@ -22,6 +22,6 @@ public class ScreenHooks
             return true;
         });
         screen.setValidator(s -> !s.isBlank() && s.length() <= Mailbox.MAX_NAME_LENGTH);
-        mc.setScreen(screen);
+        mc.gui.setScreen(screen);
     }
 }

@@ -1,7 +1,7 @@
 package com.mrcrayfish.mightymail.client.gui.screen;
 
 import com.mojang.authlib.GameProfile;
-import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.platform.InputConstants;
 import com.mrcrayfish.mightymail.client.gui.widget.IconButton;
 import com.mrcrayfish.mightymail.client.util.ScreenHelper;
 import com.mrcrayfish.mightymail.inventory.PostBoxMenu;
@@ -11,11 +11,11 @@ import com.mrcrayfish.mightymail.network.Network;
 import com.mrcrayfish.mightymail.network.message.MessageSendPackage;
 import com.mrcrayfish.mightymail.util.Utils;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.MultiLineEditBox;
-import net.minecraft.client.gui.components.PlayerFaceRenderer;
+import net.minecraft.client.gui.components.PlayerFaceExtractor;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.KeyEvent;
@@ -23,18 +23,16 @@ import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.players.NameAndId;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
-import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -52,9 +50,9 @@ public class PostBoxScreen extends AbstractContainerScreen<PostBoxMenu>
     private static final Component MAILBOXES_LABEL = Utils.translation("gui", "mailboxes");
     private static final MutableComponent DEFAULT_MAILBOX_NAME = Utils.translation("gui", "default_mailbox_name");
     private static final MutableComponent UNKNOWN_MAILBOX_OWNER = Utils.translation("gui", "unknown_mailbox_owner");
-    private static final ResourceLocation POST_BOX_TEXTURE = Utils.resource("textures/gui/container/post_box.png");
-    private static final ResourceLocation SCROLLER_SPRITE = ResourceLocation.withDefaultNamespace("container/villager/scroller");
-    private static final ResourceLocation SCROLLER_DISABLED_SPRITE = ResourceLocation.withDefaultNamespace("container/villager/scroller_disabled");
+    private static final Identifier POST_BOX_TEXTURE = Utils.resource("textures/gui/container/post_box.png");
+    private static final Identifier SCROLLER_SPRITE = Identifier.withDefaultNamespace("container/villager/scroller");
+    private static final Identifier SCROLLER_DISABLED_SPRITE = Identifier.withDefaultNamespace("container/villager/scroller_disabled");
     private static final Map<UUID, PlayerInfo> PLAYER_INFO_CACHE = new HashMap<>();
 
     private static final int SCROLL_SPEED = 5;
@@ -84,9 +82,7 @@ public class PostBoxScreen extends AbstractContainerScreen<PostBoxMenu>
 
     public PostBoxScreen(PostBoxMenu menu, Inventory playerInventory, Component title)
     {
-        super(menu, playerInventory, Component.empty());
-        this.imageWidth = 283;
-        this.imageHeight = 172;
+        super(menu, playerInventory, Component.empty(), 283, 172);
         this.inventoryLabelX = 113;
         this.inventoryLabelY = this.imageHeight - 93;
         this.updateSearchFilter();
@@ -148,24 +144,25 @@ public class PostBoxScreen extends AbstractContainerScreen<PostBoxMenu>
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick)
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick)
     {
         this.sendButton.active = this.selected != null && !this.menu.getContainer().isEmpty();
         this.searchEditBox.setTextColor(this.searchEditBox.getValue().isEmpty() && !this.searchEditBox.isFocused() ? 0xFF707070 : 0xFFE0E0E0);
-        super.render(graphics, mouseX, mouseY, partialTick);
-        this.renderTooltip(graphics, mouseX, mouseY);
+        super.extractRenderState(graphics, mouseX, mouseY, partialTick); // includes the slot tooltip pass
     }
 
     @Override
-    protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY)
+    protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY)
     {
-        super.renderLabels(graphics, mouseX, mouseY);
-        graphics.drawString(this.font, MAILBOXES_LABEL, this.titleLabelX, this.titleLabelY, 0xFFE0E0E0, false);
+        super.extractLabels(graphics, mouseX, mouseY);
+        graphics.text(this.font, MAILBOXES_LABEL, this.titleLabelX, this.titleLabelY, 0xFFE0E0E0, false);
     }
 
     @Override
-    protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY)
+    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick)
     {
+        super.extractBackground(graphics, mouseX, mouseY, partialTick);
+
         graphics.blit(RenderPipelines.GUI_TEXTURED, POST_BOX_TEXTURE, this.leftPos, this.topPos, 0, 0, this.imageWidth + 25, this.imageHeight, 512, 256);
 
         // Draw mailboxes list
@@ -189,7 +186,7 @@ public class PostBoxScreen extends AbstractContainerScreen<PostBoxMenu>
             if(optional.isPresent())
             {
                 PlayerInfo info = this.getPlayerInfo(optional.get());
-                PlayerFaceRenderer.draw(graphics, info.getSkin(), entryX + 3, entryY + 3, 8);
+                PlayerFaceExtractor.extractRenderState(graphics, info.getSkin(), entryX + 3, entryY + 3, 8);
             }
 
             // Draw the name of the mailbox
@@ -197,7 +194,7 @@ public class PostBoxScreen extends AbstractContainerScreen<PostBoxMenu>
                 .filter(s -> !s.isBlank())
                 .map(Component::literal)
                 .orElse(DEFAULT_MAILBOX_NAME);
-            graphics.drawString(this.font, mailboxName, entryX + 15, entryY + 3, selected ? 0xFFFFFF55 : 0xFFFFFFFF);
+            graphics.text(this.font, mailboxName, entryX + 15, entryY + 3, selected ? 0xFFFFFF55 : 0xFFFFFFFF);
 
             // Create a tooltip of the owners username if the cursor hovers the face image
             if(this.isHovering((entryX - this.leftPos) + 3, (entryY - this.topPos) + 3, 8, 8, mouseX, mouseY))
@@ -251,7 +248,7 @@ public class PostBoxScreen extends AbstractContainerScreen<PostBoxMenu>
             graphics.blit(RenderPipelines.GUI_TEXTURED, POST_BOX_TEXTURE, responseToastLeft, responseToastTop, toastU, 200, 4, 18, 512, 256);
             graphics.blit(RenderPipelines.GUI_TEXTURED, POST_BOX_TEXTURE, responseToastLeft + 4, responseToastTop, toastU + 4, 200, contentWidth, 18, 1, 18, 512, 256);
             graphics.blit(RenderPipelines.GUI_TEXTURED, POST_BOX_TEXTURE, responseToastLeft + 4 + contentWidth, responseToastTop, toastU + 5, 200, 3, 18, 512, 256);
-            graphics.drawString(this.font, responseMessage, responseToastLeft + 6, responseToastTop + 5, 0xFFFFFFFF, false);
+            graphics.text(this.font, responseMessage, responseToastLeft + 6, responseToastTop + 5, 0xFFFFFFFF, false);
             graphics.disableScissor();
             graphics.pose().popMatrix();
         }
@@ -268,7 +265,7 @@ public class PostBoxScreen extends AbstractContainerScreen<PostBoxMenu>
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick)
     {
-        if(event.button() == GLFW.GLFW_MOUSE_BUTTON_1)
+        if(event.button() == InputConstants.MOUSE_BUTTON_LEFT)
         {
             this.setFocused(null);
             if(this.isHovering(CONTAINER_LEFT, CONTAINER_TOP, CONTAINER_WIDTH, CONTAINER_HEIGHT, event.x(), event.y()))
@@ -297,7 +294,7 @@ public class PostBoxScreen extends AbstractContainerScreen<PostBoxMenu>
     @Override
     public boolean mouseReleased(MouseButtonEvent event)
     {
-        if(event.button() == GLFW.GLFW_MOUSE_BUTTON_1)
+        if(event.button() == InputConstants.MOUSE_BUTTON_LEFT)
         {
             if(this.clickedY >= 0)
             {
