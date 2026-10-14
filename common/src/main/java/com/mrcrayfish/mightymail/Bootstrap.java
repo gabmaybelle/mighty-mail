@@ -21,7 +21,7 @@ public class Bootstrap
 {
     public static void init()
     {
-        FrameworkTickEvents.START_SERVER.register(server -> DeliveryService.get(server).ifPresent(DeliveryService::serverTick));
+        FrameworkTickEvents.START_SERVER.register(server -> DeliveryService.get(server).ifPresent(service -> service.serverTick(server)));
         FrameworkServerEvents.STARTING.register(server -> {
             // Only register if furniture mod is installed
             if(Services.PLATFORM.isModLoaded("refurbished_furniture")) {

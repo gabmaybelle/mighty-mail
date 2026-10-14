@@ -4,7 +4,7 @@ import com.mrcrayfish.mightymail.Constants;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 
@@ -14,14 +14,14 @@ import net.minecraft.world.item.ItemStack;
 public class Utils
 {
     /**
-     * Utility to create a ResourceLocation specific to this mod
+     * Utility to create an Identifier specific to this mod
      *
      * @param name the name of the resource. can be a path
-     * @return a resource location instance
+     * @return an identifier instance
      */
-    public static ResourceLocation resource(String name)
+    public static Identifier resource(String name)
     {
-        return ResourceLocation.fromNamespaceAndPath(Constants.MOD_ID, name);
+        return Identifier.fromNamespaceAndPath(Constants.MOD_ID, name);
     }
 
     public static String translationKey(String category, String path)

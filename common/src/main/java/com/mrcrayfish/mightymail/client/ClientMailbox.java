@@ -8,7 +8,9 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.Utf8String;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.players.NameAndId;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -27,6 +29,8 @@ public record ClientMailbox(UUID id, Optional<NameAndId> owner, Optional<String>
         return new NameAndId(id, name);
     });
 
+    // PORT-26.3: IMailbox::getOwner now means getOwner(null), which is empty on the server. PostBoxBlock must map
+    // each Mailbox to a ClientMailbox with getOwner(server) before sending (block package session), as Refurbished does.
     public static final StreamCodec<RegistryFriendlyByteBuf, IMailbox> STREAM_CODEC = StreamCodec.composite(
         UUIDUtil.STREAM_CODEC,
         IMailbox::getId,
@@ -44,7 +48,7 @@ public record ClientMailbox(UUID id, Optional<NameAndId> owner, Optional<String>
     }
 
     @Override
-    public Optional<NameAndId> getOwner()
+    public Optional<NameAndId> getOwner(@Nullable MinecraftServer server)
     {
         return this.owner;
     }
