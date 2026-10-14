@@ -49,6 +49,16 @@ neoForge {
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
+// A jar without the generated block states, models, loot tables and recipes is useless, and it is
+// easy to build one (the generated folder is not in git). Refuse, and say what to run.
+tasks.named('jar') {
+    doFirst {
+        if (!file('src/generated/resources/assets').isDirectory() || !file('src/generated/resources/data').isDirectory()) {
+            throw new GradleException("src/generated/resources is missing: run './gradlew :fabric:runDatagen :neoforge:runData' first, then build.")
+        }
+    }
+}
+
 dependencies {
     implementation "com.mrcrayfish:framework-neoforge:${framework_version}+${minecraft_version}"
     // PORT-26.3: Refurbished Furniture has no 26.3 build yet; compile against the 26.2 jar

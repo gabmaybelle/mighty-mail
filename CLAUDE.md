@@ -63,6 +63,11 @@ needs the `GPR_TOKEN` repository secret.
   `requireCapability` hint); the saved-data import in `DeliveryService`.
 - **Datagen output on Fabric must go to `src/generated/resources`**, or the Fabric jar ships without
   models (the build packs that folder).
+- **Run datagen before building, everywhere.** The generated folders are not in git, so a fresh
+  checkout (CI included) builds hollow jars unless `:fabric:runDatagen :neoforge:runData` ran first.
+  Found 2026-10-14: every CI artifact until then had no block states or recipes. Now the `jar`
+  tasks refuse without the generated folders, CI has a datagen step, and the game test checks
+  oak's recipe, loot table and model. Release jars are built locally after a fresh datagen.
 - **`generate()` and `buildRecipes()` overrides in `datagen/` must be `public`**: both loaders widen
   the vanilla methods, and the common sources are compiled again inside each loader project.
 - **`CreativeModeTab.Output` is protected in vanilla.** The creative tab fills its items through

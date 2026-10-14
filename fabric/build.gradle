@@ -19,6 +19,16 @@ dependencies {
 
 sourceSets.main.resources.srcDir 'src/generated/resources'
 
+// A jar without the generated block states, models, loot tables and recipes is useless, and it is
+// easy to build one (the generated folder is not in git). Refuse, and say what to run.
+tasks.named('jar') {
+    doFirst {
+        if (!file('src/generated/resources/assets').isDirectory() || !file('src/generated/resources/data').isDirectory()) {
+            throw new GradleException("src/generated/resources is missing: run './gradlew :fabric:runDatagen :neoforge:runData' first, then build.")
+        }
+    }
+}
+
 dependencies {
     // Compatibility run: `./gradlew :fabric:runClientGameTest -PtestBop` plays the in-game test with
     // Biomes O' Plenty installed (fetched from Modrinth's maven by version id), so the test's wood-mod

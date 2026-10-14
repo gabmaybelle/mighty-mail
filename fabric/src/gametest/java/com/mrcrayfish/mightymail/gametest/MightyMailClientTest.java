@@ -84,6 +84,7 @@ public class MightyMailClientTest implements FabricClientGameTest
             world.getConnection().waitForChunksRender();
             TestServerContext server = world.getServer();
             this.platform(server);
+            this.generatedData(ctx, server, "oak", "from datagen");
             UUID mailboxId = this.placeAndName(server);
             this.postBox(ctx, server, mailboxId);
             this.delivery(ctx, server);
@@ -118,6 +119,33 @@ public class MightyMailClientTest implements FabricClientGameTest
     }
 
     /**
+     * The generated files for one mailbox are present and load: its block and item, the crafting
+     * recipe, the loot table, and a model whose every face has a real sprite. Datagen writes all of
+     * them and they are not in git, so this is also what catches a build made without datagen.
+     */
+    private void generatedData(ClientGameTestContext ctx, TestServerContext server, String wood, String from)
+    {
+        Identifier id = Identifier.fromNamespaceAndPath(Constants.MOD_ID, wood + "_mail_box");
+        this.check(BuiltInRegistries.BLOCK.containsKey(id) && BuiltInRegistries.ITEM.containsKey(id), "the " + wood + " mailbox block and item exist");
+        this.check(server.computeOnServer(s -> s.getRecipeManager().byKey(ResourceKey.create(Registries.RECIPE, id)).isPresent()), "the " + wood + " mailbox has its crafting recipe (" + from + ")");
+        this.check(server.computeOnServer(s -> s.reloadableRegistries().getLootTable(ResourceKey.create(Registries.LOOT_TABLE, Identifier.fromNamespaceAndPath(Constants.MOD_ID, "blocks/" + wood + "_mail_box"))) != LootTable.EMPTY), "the " + wood + " mailbox has its loot table (" + from + ")");
+        this.check(ctx.computeOnClient(mc -> {
+            BlockStateModelSet models = mc.getModelManager().getBlockStateModelSet();
+            BlockState state = MailboxWoods.block(wood).defaultBlockState();
+            BlockStateModel model = models.get(state);
+            if(model == models.missingModel() || models.getParticleMaterial(state).sprite().contents().name().equals(MissingTextureAtlasSprite.getLocation()))
+                return false;
+            // Every face of every part must have a real sprite: a planks texture the wood mod renamed shows up here
+            List<BlockStateModelPart> parts = new ArrayList<>();
+            model.collectParts(RandomSource.create(42), parts);
+            List<Direction> sides = new ArrayList<>(List.of(Direction.values()));
+            sides.add(null);
+            return !parts.isEmpty() && parts.stream().flatMap(part -> sides.stream().flatMap(side -> part.getQuads(side).stream()))
+                .noneMatch(quad -> quad.materialInfo().sprite().contents().name().equals(MissingTextureAtlasSprite.getLocation()));
+        }), "the " + wood + " mailbox has a real model and texture (" + from + ")");
+    }
+
+    /**
      * With Biomes O' Plenty installed ({@code -PtestBop}): its mailboxes exist with a recipe, a loot
      * table and a real texture, and one takes a name and mail like a vanilla one. Without it, the
      * section is skipped and the check above has already shown that none of them exist.
@@ -129,24 +157,7 @@ public class MightyMailClientTest implements FabricClientGameTest
             Constants.LOG.info("[test] Biomes O' Plenty is not installed; the wood-mod section is skipped (run with -PtestBop)");
             return;
         }
-        Identifier firId = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "biomesoplenty_fir_mail_box");
-        this.check(BuiltInRegistries.BLOCK.containsKey(firId) && BuiltInRegistries.ITEM.containsKey(firId), "the fir mailbox block and item exist");
-        this.check(server.computeOnServer(s -> s.getRecipeManager().byKey(ResourceKey.create(Registries.RECIPE, firId)).isPresent()), "the fir mailbox has its crafting recipe (from the built-in pack)");
-        this.check(server.computeOnServer(s -> s.reloadableRegistries().getLootTable(ResourceKey.create(Registries.LOOT_TABLE, Identifier.fromNamespaceAndPath(Constants.MOD_ID, "blocks/biomesoplenty_fir_mail_box"))) != LootTable.EMPTY), "the fir mailbox has its loot table");
-        this.check(ctx.computeOnClient(mc -> {
-            BlockStateModelSet models = mc.getModelManager().getBlockStateModelSet();
-            BlockState fir = MailboxWoods.block("biomesoplenty_fir").defaultBlockState();
-            BlockStateModel model = models.get(fir);
-            if(model == models.missingModel() || models.getParticleMaterial(fir).sprite().contents().name().equals(MissingTextureAtlasSprite.getLocation()))
-                return false;
-            // Every face of every part must have a real sprite: a planks texture the wood mod renamed shows up here
-            List<BlockStateModelPart> parts = new ArrayList<>();
-            model.collectParts(RandomSource.create(42), parts);
-            List<Direction> sides = new ArrayList<>(List.of(Direction.values()));
-            sides.add(null);
-            return !parts.isEmpty() && parts.stream().flatMap(part -> sides.stream().flatMap(side -> part.getQuads(side).stream()))
-                .noneMatch(quad -> quad.materialInfo().sprite().contents().name().equals(MissingTextureAtlasSprite.getLocation()));
-        }), "the fir mailbox has a real model and texture (the planks-mapped model resolved)");
+        this.generatedData(ctx, server, "biomesoplenty_fir", "from the built-in pack");
         server.runOnServer(s -> {
             ServerLevel level = s.overworld();
             ServerPlayer player = player(s);
