@@ -7,12 +7,16 @@ MrCrayfish wrote the mod. This repository only carries it forward to a newer Min
 It is not affiliated with or endorsed by him, and the original author is not responsible for
 anything here. If the original mod gets its own 26.3 release, use that.
 
+![Mailboxes in several wood types and a post box on a hillside by a lake](docs/screenshots/mailboxes-by-the-lake.png)
+
 ## What it does
 
 Mighty Mail adds a post box and mailboxes in every wood type. Put items in the post box, pick a
 mailbox from the list, add an optional message, and a package is delivered to that mailbox, even
 in another dimension. A little red flag shows when mail is waiting. Server owners can change the
 mailbox size, the delivery queue limit, banned items and allowed dimensions in the config.
+
+![The post box screen: a list of mailboxes, a message and the items to send](docs/screenshots/post-box.png)
 
 ## Requirements
 
