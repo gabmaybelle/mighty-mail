@@ -65,9 +65,10 @@ Main kinds of change seen in Refurbished's 26.x mail code:
 | Fabric Loader | `0.19.5` |
 | Fabric API | `0.163.0+26.3` |
 | Framework | `0.13.27` for 26.3, Fabric and NeoForge (released 4 Oct 2026) |
-| Build plugins | latest Fabric Loom and ModDevGradle that support 26.3; confirm in their docs |
+| Build plugins | Fabric Loom `1.18.4` (plugin id `net.fabricmc.fabric-loom`), ModDevGradle `2.0.148` for both `common` and `neoforge`, Gradle `9.7.1`, foojay resolver `1.0.0` |
+| Refurbished Furniture | no 26.3 build exists; newest is `1.0.25+26.2`. Compile-only against that jar for now (`PORT-26.3` markers in `gradle.properties` and the three build scripts). |
 
-Re-check before Phase 1.
+Re-checked 14 Oct 2026 at the start of Phase 1: everything above confirmed against maven.fabricmc.net, maven.neoforged.net, MrCrayfish's GitHub Maven and services.gradle.org. NeoForge 26.3.0.77 is a full release, not a beta. Gradle 9.8.1 exists but 9.7.1 is what the other 26.3 mods on this machine use.
 
 ### Getting Framework
 
@@ -80,18 +81,17 @@ Pick one in Phase 0 and record it below.
 
 **Chosen (2026-10-14): Option A, using the GitHub CLI's login instead of a hand-made token.** `gh auth refresh -s read:packages` added the `read:packages` scope to the existing `gh` login (device-code flow, approved by Gabby). Nothing is stored in `~/.gradle/gradle.properties`; each build passes the token in through the `GPR_USER` / `GPR_KEY` environment variables that `buildSrc/multiloader-common.gradle` already reads. The same token also covers the optional Refurbished Furniture dependency, which lives on the same Maven.
 
-### Building locally (Phase 0 toolchain)
+### Building locally
 
-Gradle 8.14 does not run on the system Java 25, so point it at the Java 21 that Gradle auto-provisioned. In PowerShell:
+Since Phase 1 the build runs on the system Java 25 (Temurin, the default `java`). In PowerShell:
 
 ```powershell
-$env:JAVA_HOME = "$env:USERPROFILE\.gradle\jdks\eclipse_adoptium-21-amd64-windows.2"
 $env:GPR_USER = "gabmaybelle"
 $env:GPR_KEY = (gh auth token)
 .\gradlew :fabric:build :neoforge:build
 ```
 
-Swap the last line for `.\gradlew :fabric:runClient` or `.\gradlew :neoforge:runClient` to launch a dev client. The first build took about 45 minutes (Minecraft decompile for `common`, plus both loader setups); later builds are much faster. Phase 1 replaces the Java 21 path with Java 25.
+Swap the last line for `.\gradlew :fabric:runClient` or `.\gradlew :neoforge:runClient` to launch a dev client, or `:fabric:compileJava :neoforge:compileJava --continue` to just see compiler errors. (Phase 0, on the old Gradle 8.14, needed `JAVA_HOME` pointed at Gradle's auto-provisioned Java 21 under `~/.gradle/jdks`; its first build took about 45 minutes.)
 
 ---
 
@@ -154,3 +154,4 @@ Run each on Fabric and on NeoForge, on a dedicated server with two players:
 |---|---|---|
 | 2026-10-14 | Planning | Inspected upstream `multiloader/1.21.10` and Refurbished `1.21.10` vs `26.2` mail code. Confirmed Framework 0.13.27 exists for 26.3. |
 | 2026-10-14 | Phase 0 | Forked upstream as `gabmaybelle/mighty-mail`, cloned to `mods-dev/mighty-mail`, added `upstream` remote, branch `26.3` from `upstream/multiloader/1.21.10` (`8a7ee32`). Framework access: Option A via `gh` login with `read:packages` (see above). Built `:fabric:build` and `:neoforge:build` on Java 21 with no code changes: both succeed (jars `mighty_mail-fabric-1.21.10-1.2.1.jar`, `mighty_mail-neoforge-1.21.10-1.2.1.jar`). Launched each dev client once; both reach the title screen, Framework 0.13.1 and Mighty Mail 1.2.1 load. Expected noise in the dev logs: "Missing model" / "No model loaded" warnings because block and item models come from datagen and `src/generated` is not in git (run datagen in Phase 2); Fabric warns that Refurbished Furniture "conflicts" with Mighty Mail (that mod's own metadata; it is only on the classpath in dev runs); one javadoc warning about a stale `Item#appendHoverText` reference in `ScreenHelper`. Phase 0 done. |
+| 2026-10-14 | Phase 1 | Re-checked every version (see table). Toolchain bumped: Java 25, MC 26.3, NeoForm `26.3-1`, Fabric Loader 0.19.5 / API 0.163.0+26.3, NeoForge 26.3.0.77, Framework 0.13.27, Gradle 9.7.1, Loom 1.18.4, ModDevGradle 2.0.148 (replaces NeoGradle in `neoforge`, as MrCrayfish did for Refurbished 26.2; `neoforge/build.gradle` rewritten from his 26.2 version). Framework coordinates are now `<version>+<mc>`. Three toolchain-only fixes found by compiling: Loom rejects `officialMojangMappings()` on an unobfuscated game (line removed); the access widener header must say `official` not `named`; the Refurbished Furniture 26.2 package needs `requireCapability("com.mrcrayfish:refurbished_furniture")` because it publishes capability names with the MC version in them. Result: Gradle syncs and `:common:compileJava` runs against 26.3 and stops at javac's 100-error cap, all in mod code. Error map for Phase 2: `ResourceLocation` → `Identifier` (about a third of all errors, 17 files); `GuiGraphics` gone from `PostBoxScreen`, `TextInputScreen`, `IconButton` (drawing API change); `DeliveryService` saved-data API (15 errors); datagen providers (`BlockStatesGen` `Variant`, `BlockTagGen` `IntrinsicHolderTagsProvider`/`tag()`, `RecipeGen`, `LootTableGen`, `ItemModelsGen`); `Block.simpleCodec` in both blocks; `CreativeModeTab.Output` access; `MigrateCommand` `hasPermission`; `Utils`/`ScreenHooks` small bits (`Util`, `GLFW`, `setScreen`). Phase 1 done. |

@@ -2,16 +2,19 @@ import org.apache.commons.io.FilenameUtils
 
 plugins {
     id 'multiloader-loader'
-    id 'fabric-loom'
+    id 'net.fabricmc.fabric-loom'
 }
 
 dependencies {
     minecraft "com.mojang:minecraft:${minecraft_version}"
-    mappings loom.officialMojangMappings()
-    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
-    modImplementation "com.mrcrayfish:framework-fabric:${minecraft_version}-${framework_version}"
-    modImplementation "com.mrcrayfish:refurbished_furniture-fabric:${minecraft_version}-${refurbished_furniture}"
+    implementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
+    implementation "com.mrcrayfish:framework-fabric:${framework_version}+${minecraft_version}"
+    // PORT-26.3: compile-only because the 26.2 Refurbished Furniture jar cannot run on 26.3
+    compileOnly("com.mrcrayfish:refurbished_furniture-fabric:${refurbished_furniture}+${refurbished_furniture_minecraft_version}") {
+        // PORT-26.3: the 26.2 package declares its own capability names, so Gradle needs this hint to pick a variant
+        capabilities { requireCapability("com.mrcrayfish:refurbished_furniture") }
+    }
 }
 
 sourceSets.main.resources.srcDir 'src/generated/resources'
@@ -46,22 +49,26 @@ loom {
 }
 
 tasks.register("signJar") {
-    dependsOn remapJar
+    dependsOn jar
     onlyIf {
         findProperty('keyStore') || System.getenv("KEYSTORE")
     }
     doLast {
-        def unsignedJar = tasks.remapJar.archiveFile.get()
-        def name = FilenameUtils.removeExtension(unsignedJar.getAsFile().getName());
-        def signedJar  = layout.buildDirectory.file("libs/%s-signed.jar".formatted(name)).get();
-        def options = [:]
-        options['jar'] = unsignedJar.getAsFile().getAbsolutePath()
-        options['signedJar'] = signedJar.getAsFile().getAbsolutePath()
-        options['alias'] = findProperty('keyStoreAlias') ?: System.getenv("KEYSTORE_ALIAS")
-        options['keyStore'] = findProperty('keyStore') ?: System.getenv("KEYSTORE")
-        options['storePass'] = findProperty('keyStorePass') ?: System.getenv("KEYSTORE_PASS")
-        options['storetype'] = "jks"
-        this.getAnt().invokeMethod("signjar", options);
+        def unsignedJar = jar.archiveFile.get().asFile
+        def name = FilenameUtils.removeExtension(unsignedJar.getName())
+        def signedJar  = layout.buildDirectory.file("libs/%s-signed.jar".formatted(name)).get().asFile
+        def signingKeyAlias = findProperty('keyStoreAlias') ?: System.getenv("KEYSTORE_ALIAS")
+        def signingKeystore = findProperty('keyStore') ?: System.getenv("KEYSTORE")
+        def signingPassword = findProperty('keyStorePass') ?: System.getenv("KEYSTORE_PASS")
+        ant.signjar(
+            jar: unsignedJar,
+            signedJar: signedJar,
+            alias: signingKeyAlias,
+            keyStore: signingKeystore,
+            storePass: signingPassword,
+            storetype: 'jks'
+        )
+        println "Signed jar created at: $signedJar"
     }
 }
 

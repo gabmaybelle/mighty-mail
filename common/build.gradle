@@ -4,8 +4,11 @@ plugins {
 }
 
 neoForge {
-    // Look for versions on https://projects.neoforged.net/neoforged/neoform
-    neoFormVersion = neo_form_version
+    enable {
+        // Look for versions on https://projects.neoforged.net/neoforged/neoform
+        neoFormVersion = neo_form_version
+        disableRecompilation = System.getenv("CI") == "true"
+    }
 
     // Automatically enable AccessTransformers if the file exists
     def at = file('src/main/resources/META-INF/accesstransformer.cfg')
@@ -15,8 +18,11 @@ neoForge {
 }
 
 dependencies {
-    compileOnly "com.mrcrayfish:framework-common:${minecraft_version}-${framework_version}"
-    compileOnly "com.mrcrayfish:refurbished_furniture-common:${minecraft_version}-${refurbished_furniture}"
+    compileOnly "com.mrcrayfish:framework-common:${framework_version}+${minecraft_version}"
+    compileOnly("com.mrcrayfish:refurbished_furniture-common:${refurbished_furniture}+${refurbished_furniture_minecraft_version}") {
+        // PORT-26.3: the 26.2 package declares its own capability names, so Gradle needs this hint to pick a variant
+        capabilities { requireCapability("com.mrcrayfish:refurbished_furniture") }
+    }
 }
 
 configurations {
