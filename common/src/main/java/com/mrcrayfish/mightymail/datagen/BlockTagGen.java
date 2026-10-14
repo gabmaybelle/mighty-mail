@@ -1,9 +1,11 @@
 package com.mrcrayfish.mightymail.datagen;
 
 import com.mrcrayfish.mightymail.core.ModBlocks;
+import com.mrcrayfish.mightymail.wood.MailboxWoods;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
+import net.minecraft.data.tags.TagAppender;
 import net.minecraft.data.tags.TagsProvider;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.BlockTags;
@@ -21,18 +23,8 @@ public class BlockTagGen extends TagsProvider<Block>
     @Override
     protected void addTags(HolderLookup.Provider provider)
     {
-        this.tag(BlockTags.MINEABLE_WITH_AXE)
-                .add(key(ModBlocks.MAIL_BOX_OAK.get()))
-                .add(key(ModBlocks.MAIL_BOX_SPRUCE.get()))
-                .add(key(ModBlocks.MAIL_BOX_BIRCH.get()))
-                .add(key(ModBlocks.MAIL_BOX_JUNGLE.get()))
-                .add(key(ModBlocks.MAIL_BOX_ACACIA.get()))
-                .add(key(ModBlocks.MAIL_BOX_DARK_OAK.get()))
-                .add(key(ModBlocks.MAIL_BOX_MANGROVE.get()))
-                .add(key(ModBlocks.MAIL_BOX_CHERRY.get()))
-                .add(key(ModBlocks.MAIL_BOX_CRIMSON.get()))
-                .add(key(ModBlocks.MAIL_BOX_WARPED.get()))
-                .add(key(ModBlocks.MAIL_BOX_PALE_OAK.get()));
+        TagAppender<Block> axe = this.tag(BlockTags.MINEABLE_WITH_AXE);
+        MailboxWoods.blocks().forEach(block -> axe.add(key(block)));
 
         this.tag(BlockTags.MINEABLE_WITH_PICKAXE)
                 .add(key(ModBlocks.POST_BOX.get()));

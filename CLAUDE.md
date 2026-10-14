@@ -17,9 +17,14 @@ Gradle scripts). Branch `26.3` is the port; the `multiloader/*` branches are ups
   - `block/`, `blockentity/`, `item/`, `inventory/`, `network/`: the post box, mailboxes and packages.
   - `client/`: `PostBoxScreen`, `TextInputScreen` (naming a mailbox), `IconButton`, `ClientMailbox`.
   - `datagen/`: block states and models (`FrameworkGenerator`), tags, and `RegistriesGen`, the registry
-    set that holds recipes and loot tables (registry entries since 26.x).
+    set that holds recipes and loot tables (registry entries since 26.x). All of it loops over `MailboxWoods`.
+    `CompatPackGen` writes one built-in pack per other wood mod to `resourcepacks/compat_<mod>` (all of
+    that mod's mailbox JSON, as plain JSON, because its blocks don't exist while datagen runs).
+  - `wood/`: `MailboxWood` (one row: id, name, planks, fence, painted texture, required mod, map colour) and `MailboxWoods`
+    (the table, registration, lookups).
   - `platform/`: `IClientHelper` and `IPlatformHelper`, implemented per loader with `ServiceLoader`.
-- Textures and the three base block models live in `common/src/main/resources`; everything else
+- Textures, the three base block models and the two planks-mapped models (`mail_box_planks*`, used
+  with `mail_box_overlay.png` for woods without a painted texture) live in `common/src/main/resources`; everything else
   (block states, generated models, loot tables, recipes, tags) is produced by data generation into
   `fabric/src/generated/resources` and `neoforge/src/generated/resources` (not in git).
 
@@ -52,6 +57,15 @@ repository secret.
 - **`CreativeModeTab.Output` is protected in vanilla.** The creative tab fills its items through
   `IPlatformHelper.displayItemsAcceptor`, implemented in each loader where the type is widened.
 - **No render-layer registration.** Since 26.x the chunk layer comes from the texture's transparency.
+- **Mailboxes of other wood mods** are rows in `MailboxWoods.COMPAT` with a `requiredMod`. They register
+  only when that mod is loaded, and their JSON lives in a built-in pack the loaders enable only then
+  (Fabric `registerBuiltinResourcePack`, NeoForge `AddPackFindersEvent`), so a missing mod never
+  produces errors. Adding a mod: add rows, run datagen, test with the mod's jar in a game and once
+  without it. The compat JSON mirrors what the vanilla providers write for oak; if a vanilla format
+  changes, compare with the generated oak files.
+- **Framework scans our registry classes during its own startup**, before our entry point, so
+  `MailboxWoods.ensureRegistered()` runs from `ModBlockEntities`' static initialiser. Registering
+  later crashes every placed mailbox with "Invalid block entity".
 - **Owner names in the post box list** are resolved on the server in `PostBoxBlock` with
   `getOwner(server)`; `IMailbox.getOwner()` without a server is empty server-side.
 - **Reference for future updates:** MrCrayfish's Furniture Mod: Refurbished has the same mail code.

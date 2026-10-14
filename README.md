@@ -16,6 +16,9 @@ mailbox from the list, add an optional message, and a package is delivered to th
 in another dimension. A little red flag shows when mail is waiting. Server owners can change the
 mailbox size, the delivery queue limit, banned items and allowed dimensions in the config.
 
+With Biomes O' Plenty, Ecologics or Wilder Wild installed, their woods get mailboxes too, crafted
+the same way from that wood's planks and fence.
+
 ![The post box screen: a list of mailboxes, a message and the items to send](docs/screenshots/post-box.png)
 
 ## Requirements

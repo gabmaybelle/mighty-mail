@@ -2,6 +2,7 @@ package com.mrcrayfish.mightymail;
 
 import com.mrcrayfish.framework.api.datagen.FrameworkModelProvider;
 import com.mrcrayfish.mightymail.datagen.*;
+import com.mrcrayfish.mightymail.wood.MailboxWoods;
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
@@ -27,6 +28,10 @@ public class DataGeneration implements DataGeneratorEntrypoint
         pack.addProvider(BlockTagGen::new);
         pack.addProvider((FabricDataGenerator.Pack.Factory<FrameworkModelProvider>) output ->
             new FrameworkModelProvider(output, BlockStatesGen::new, ItemModelsGen::new));
+        for(String modId : MailboxWoods.compatMods())
+        {
+            pack.addProvider((FabricDataGenerator.Pack.Factory<CompatPackGen>) output -> new CompatPackGen(output, modId));
+        }
     }
 
     // Recipes and loot tables are registry entries since 26.x; Fabric API wraps the vanilla bootstrap classes

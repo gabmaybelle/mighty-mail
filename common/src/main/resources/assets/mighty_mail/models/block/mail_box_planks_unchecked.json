@@ -1,0 +1,71 @@
+{
+	"credit": "Geometry by MrCrayfish (mail_box_unchecked.json); planks-mapped faces and overlay by the unofficial port for woods without a painted texture",
+	"parent": "mighty_mail:block/mail_box_planks",
+	"elements": [
+		{
+			"name": "post",
+			"from": [6.5, 0, 6.5],
+			"to": [9.5, 11, 9.5],
+			"faces": {
+				"north": {"uv": [6.5, 5, 9.5, 16], "texture": "#planks"},
+				"east": {"uv": [6.5, 5, 9.5, 16], "texture": "#planks"},
+				"south": {"uv": [6.5, 5, 9.5, 16], "texture": "#planks"},
+				"west": {"uv": [6.5, 5, 9.5, 16], "texture": "#planks"},
+				"down": {"uv": [6.5, 6.5, 9.5, 9.5], "texture": "#planks"}
+			}
+		},
+		{
+			"name": "box",
+			"from": [4, 11, 3.5],
+			"to": [12, 18, 12.5],
+			"faces": {
+				"north": {"uv": [4, 4, 12, 11], "texture": "#planks"},
+				"east": {"uv": [3.5, 4, 12.5, 11], "texture": "#planks"},
+				"south": {"uv": [4, 4, 12, 11], "texture": "#planks"},
+				"west": {"uv": [3.5, 4, 12.5, 11], "texture": "#planks"},
+				"down": {"uv": [4, 3.5, 12, 12.5], "texture": "#planks"}
+			}
+		},
+		{
+			"name": "slot",
+			"from": [4, 11, 3.49],
+			"to": [12, 18, 3.49],
+			"faces": {
+				"north": {"uv": [0, 0, 8, 7], "texture": "#overlay"}
+			}
+		},
+		{
+			"name": "roof left",
+			"rotation": {"angle": 22.5, "axis": "z", "origin": [8, 19.75, 9.5]},
+			"from": [2, 17.75, 3],
+			"to": [8, 19.75, 13],
+			"faces": {
+				"north": {"uv": [2, 0, 8, 2], "texture": "#planks"},
+				"south": {"uv": [2, 0, 8, 2], "texture": "#planks"},
+				"west": {"uv": [3, 0, 13, 2], "texture": "#planks"},
+				"up": {"uv": [2, 3, 8, 13], "texture": "#planks"}
+			}
+		},
+		{
+			"name": "roof right",
+			"rotation": {"angle": -22.5, "axis": "z", "origin": [8, 19.75, 9.5]},
+			"from": [8, 17.75, 3],
+			"to": [14, 19.75, 13],
+			"faces": {
+				"north": {"uv": [8, 0, 14, 2], "texture": "#planks"},
+				"east": {"uv": [3, 0, 13, 2], "texture": "#planks"},
+				"south": {"uv": [8, 0, 14, 2], "texture": "#planks"},
+				"up": {"uv": [8, 3, 14, 13], "texture": "#planks"}
+			}
+		},
+		{
+			"name": "flag",
+			"from": [12, 18, 9.5],
+			"to": [12, 22, 11.5],
+			"faces": {
+				"east": {"uv": [8, 0, 10, 4], "texture": "#overlay"},
+				"west": {"uv": [10, 0, 8, 4], "texture": "#overlay"}
+			}
+		}
+	]
+}

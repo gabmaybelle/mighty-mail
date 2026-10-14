@@ -4,7 +4,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mrcrayfish.framework.platform.Services;
 import com.mrcrayfish.mightymail.block.MailboxBlock;
 import com.mrcrayfish.mightymail.blockentity.MailboxBlockEntity;
-import com.mrcrayfish.mightymail.core.ModBlocks;
+import com.mrcrayfish.mightymail.wood.MailboxWoods;
 import com.mrcrayfish.mightymail.mail.DeliveryService;
 import com.mrcrayfish.mightymail.mail.IMailbox;
 import com.mrcrayfish.mightymail.mail.Mailbox;
@@ -115,43 +115,43 @@ public class MigrateCommand
 
             // Get the equivalent block to replace
             Block newBlock;
-            if(state.getBlock() == ModBlocks.MAIL_BOX_OAK.get())
+            if(state.getBlock() == MailboxWoods.block("oak"))
             {
                 newBlock = com.mrcrayfish.furniture.refurbished.core.ModBlocks.MAIL_BOX_OAK.get();
             }
-            else if(state.getBlock() == ModBlocks.MAIL_BOX_SPRUCE.get())
+            else if(state.getBlock() == MailboxWoods.block("spruce"))
             {
                 newBlock = com.mrcrayfish.furniture.refurbished.core.ModBlocks.MAIL_BOX_SPRUCE.get();
             }
-            else if(state.getBlock() == ModBlocks.MAIL_BOX_BIRCH.get())
+            else if(state.getBlock() == MailboxWoods.block("birch"))
             {
                 newBlock = com.mrcrayfish.furniture.refurbished.core.ModBlocks.MAIL_BOX_BIRCH.get();
             }
-            else if(state.getBlock() == ModBlocks.MAIL_BOX_JUNGLE.get())
+            else if(state.getBlock() == MailboxWoods.block("jungle"))
             {
                 newBlock = com.mrcrayfish.furniture.refurbished.core.ModBlocks.MAIL_BOX_JUNGLE.get();
             }
-            else if(state.getBlock() == ModBlocks.MAIL_BOX_ACACIA.get())
+            else if(state.getBlock() == MailboxWoods.block("acacia"))
             {
                 newBlock = com.mrcrayfish.furniture.refurbished.core.ModBlocks.MAIL_BOX_ACACIA.get();
             }
-            else if(state.getBlock() == ModBlocks.MAIL_BOX_DARK_OAK.get())
+            else if(state.getBlock() == MailboxWoods.block("dark_oak"))
             {
                 newBlock = com.mrcrayfish.furniture.refurbished.core.ModBlocks.MAIL_BOX_DARK_OAK.get();
             }
-            else if(state.getBlock() == ModBlocks.MAIL_BOX_MANGROVE.get())
+            else if(state.getBlock() == MailboxWoods.block("mangrove"))
             {
                 newBlock = com.mrcrayfish.furniture.refurbished.core.ModBlocks.MAIL_BOX_MANGROVE.get();
             }
-            else if(state.getBlock() == ModBlocks.MAIL_BOX_CRIMSON.get())
+            else if(state.getBlock() == MailboxWoods.block("crimson"))
             {
                 newBlock = com.mrcrayfish.furniture.refurbished.core.ModBlocks.MAIL_BOX_CRIMSON.get();
             }
-            else if(state.getBlock() == ModBlocks.MAIL_BOX_WARPED.get())
+            else if(state.getBlock() == MailboxWoods.block("warped"))
             {
                 newBlock = com.mrcrayfish.furniture.refurbished.core.ModBlocks.MAIL_BOX_WARPED.get();
             }
-            else if(state.getBlock() == ModBlocks.MAIL_BOX_PALE_OAK.get())
+            else if(state.getBlock() == MailboxWoods.block("pale_oak"))
             {
                 newBlock = com.mrcrayfish.furniture.refurbished.core.ModBlocks.MAIL_BOX_PALE_OAK.get();
             }

@@ -5,6 +5,8 @@ import com.mrcrayfish.mightymail.block.MailboxBlock;
 import com.mrcrayfish.mightymail.block.PostBoxBlock;
 import com.mrcrayfish.mightymail.core.ModBlocks;
 import com.mrcrayfish.mightymail.util.Utils;
+import com.mrcrayfish.mightymail.wood.MailboxWood;
+import com.mrcrayfish.mightymail.wood.MailboxWoods;
 import net.minecraft.client.data.models.MultiVariant;
 import net.minecraft.client.data.models.blockstates.BlockModelDefinitionGenerator;
 import net.minecraft.client.data.models.blockstates.MultiVariantGenerator;
@@ -14,12 +16,10 @@ import net.minecraft.client.renderer.block.dispatch.Variant;
 import net.minecraft.client.renderer.item.ClientItem;
 import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.core.Direction;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.random.WeightedList;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.properties.WoodType;
 
 import java.util.Map;
 
@@ -36,30 +36,13 @@ public class BlockStatesGen extends FrameworkGenerator
     @Override
     public void generate()
     {
-        this.mailbox(ModBlocks.MAIL_BOX_OAK.get(), WoodType.OAK);
-        this.mailbox(ModBlocks.MAIL_BOX_SPRUCE.get(), WoodType.SPRUCE);
-        this.mailbox(ModBlocks.MAIL_BOX_BIRCH.get(), WoodType.BIRCH);
-        this.mailbox(ModBlocks.MAIL_BOX_JUNGLE.get(), WoodType.JUNGLE);
-        this.mailbox(ModBlocks.MAIL_BOX_ACACIA.get(), WoodType.ACACIA);
-        this.mailbox(ModBlocks.MAIL_BOX_DARK_OAK.get(), WoodType.DARK_OAK);
-        this.mailbox(ModBlocks.MAIL_BOX_MANGROVE.get(), WoodType.MANGROVE);
-        this.mailbox(ModBlocks.MAIL_BOX_CHERRY.get(), WoodType.CHERRY);
-        this.mailbox(ModBlocks.MAIL_BOX_CRIMSON.get(), WoodType.CRIMSON);
-        this.mailbox(ModBlocks.MAIL_BOX_WARPED.get(), WoodType.WARPED);
-        this.mailbox(ModBlocks.MAIL_BOX_PALE_OAK.get(), WoodType.PALE_OAK);
+        for(MailboxWood wood : MailboxWoods.VANILLA)
+        {
+            this.mailbox(wood);
+        }
         this.postBox(ModBlocks.POST_BOX.get());
     }
 
-    private Material woodParticle(WoodType type)
-    {
-        return new Material(Identifier.withDefaultNamespace("block/" + type.name() + "_planks"));
-    }
-
-    private Material blockTexture(Block block)
-    {
-        Identifier name = BuiltInRegistries.BLOCK.getKey(block);
-        return new Material(Identifier.fromNamespaceAndPath(name.getNamespace(), "block/" + name.getPath()));
-    }
 
     private void registerItemWithModelFromMultiVariant(Block block, MultiVariant variant)
     {
@@ -82,11 +65,12 @@ public class BlockStatesGen extends FrameworkGenerator
         return this.variant(this.plainModel(location));
     }
 
-    private void mailbox(MailboxBlock block, WoodType type)
+    private void mailbox(MailboxWood wood)
     {
+        MailboxBlock block = MailboxWoods.block(wood.id());
         TextureMapping textures = new TextureMapping()
-            .put(TextureSlot.PARTICLE, this.woodParticle(type))
-            .put(TextureSlot.TEXTURE, this.blockTexture(block));
+            .put(TextureSlot.PARTICLE, new Material(wood.planksTexture()))
+            .put(TextureSlot.TEXTURE, new Material(wood.painted()));
         MultiVariant mailboxVariant = this.plainVariant(ModelDefinitions.MAIL_BOX.create(block, textures, this.models::put));
         MultiVariant mailboxUncheckedVariant = this.plainVariant(ModelDefinitions.MAIL_BOX_UNCHECKED.create(block, textures, this.models::put));
         this.registerItemWithModelFromMultiVariant(block, mailboxVariant);

@@ -1,8 +1,11 @@
 package com.mrcrayfish.mightymail.datagen;
 
 import com.mrcrayfish.mightymail.core.ModBlocks;
+import com.mrcrayfish.mightymail.wood.MailboxWood;
+import com.mrcrayfish.mightymail.wood.MailboxWoods;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.MultiRegistryBootstrap;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.recipes.RecipeCategory;
@@ -49,17 +52,10 @@ public class RecipeGen extends RecipeProvider
     @Override
     public void buildRecipes()
     {
-        this.mailbox(ModBlocks.MAIL_BOX_OAK.get(), Blocks.OAK_PLANKS, Blocks.OAK_FENCE);
-        this.mailbox(ModBlocks.MAIL_BOX_SPRUCE.get(), Blocks.SPRUCE_PLANKS, Blocks.SPRUCE_FENCE);
-        this.mailbox(ModBlocks.MAIL_BOX_BIRCH.get(), Blocks.BIRCH_PLANKS, Blocks.BIRCH_FENCE);
-        this.mailbox(ModBlocks.MAIL_BOX_JUNGLE.get(), Blocks.JUNGLE_PLANKS, Blocks.JUNGLE_FENCE);
-        this.mailbox(ModBlocks.MAIL_BOX_ACACIA.get(), Blocks.ACACIA_PLANKS, Blocks.ACACIA_FENCE);
-        this.mailbox(ModBlocks.MAIL_BOX_DARK_OAK.get(), Blocks.DARK_OAK_PLANKS, Blocks.DARK_OAK_FENCE);
-        this.mailbox(ModBlocks.MAIL_BOX_MANGROVE.get(), Blocks.MANGROVE_PLANKS, Blocks.MANGROVE_FENCE);
-        this.mailbox(ModBlocks.MAIL_BOX_CHERRY.get(), Blocks.CHERRY_PLANKS, Blocks.CHERRY_FENCE);
-        this.mailbox(ModBlocks.MAIL_BOX_CRIMSON.get(), Blocks.CRIMSON_PLANKS, Blocks.CRIMSON_FENCE);
-        this.mailbox(ModBlocks.MAIL_BOX_WARPED.get(), Blocks.WARPED_PLANKS, Blocks.WARPED_FENCE);
-        this.mailbox(ModBlocks.MAIL_BOX_PALE_OAK.get(), Blocks.PALE_OAK_PLANKS, Blocks.PALE_OAK_FENCE);
+        for(MailboxWood wood : MailboxWoods.VANILLA)
+        {
+            this.mailbox(MailboxWoods.block(wood.id()), BuiltInRegistries.BLOCK.getValue(wood.planks()), BuiltInRegistries.BLOCK.getValue(wood.fence()));
+        }
 
         shaped(RecipeCategory.DECORATIONS, ModBlocks.POST_BOX.get())
             .pattern("III")

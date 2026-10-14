@@ -5,6 +5,7 @@ import com.mrcrayfish.framework.api.registry.RegistryEntry;
 import com.mrcrayfish.mightymail.blockentity.MailboxBlockEntity;
 import com.mrcrayfish.mightymail.blockentity.PostBoxBlockEntity;
 import com.mrcrayfish.mightymail.util.Utils;
+import com.mrcrayfish.mightymail.wood.MailboxWoods;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 
@@ -14,19 +15,13 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 @RegistryContainer
 public class ModBlockEntities
 {
-    public static final RegistryEntry<BlockEntityType<MailboxBlockEntity>> MAIL_BOX = RegistryEntry.blockEntity(Utils.resource("mail_box"), MailboxBlockEntity::new, () -> new Block[]{
-            ModBlocks.MAIL_BOX_OAK.get(),
-            ModBlocks.MAIL_BOX_SPRUCE.get(),
-            ModBlocks.MAIL_BOX_BIRCH.get(),
-            ModBlocks.MAIL_BOX_JUNGLE.get(),
-            ModBlocks.MAIL_BOX_ACACIA.get(),
-            ModBlocks.MAIL_BOX_DARK_OAK.get(),
-            ModBlocks.MAIL_BOX_MANGROVE.get(),
-            ModBlocks.MAIL_BOX_CHERRY.get(),
-            ModBlocks.MAIL_BOX_CRIMSON.get(),
-            ModBlocks.MAIL_BOX_WARPED.get(),
-            ModBlocks.MAIL_BOX_PALE_OAK.get(),
-    });
+    static
+    {
+        // The mailbox blocks must exist before the block entity type below lists them
+        MailboxWoods.ensureRegistered();
+    }
+
+    public static final RegistryEntry<BlockEntityType<MailboxBlockEntity>> MAIL_BOX = RegistryEntry.blockEntity(Utils.resource("mail_box"), MailboxBlockEntity::new, () -> MailboxWoods.blocks().toArray(Block[]::new));
 
     public static final RegistryEntry<BlockEntityType<PostBoxBlockEntity>> POST_BOX = RegistryEntry.blockEntity(Utils.resource("post_box"), PostBoxBlockEntity::new, () -> new Block[]{
             ModBlocks.POST_BOX.get()

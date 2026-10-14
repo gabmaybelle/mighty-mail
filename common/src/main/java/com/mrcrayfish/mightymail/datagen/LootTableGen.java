@@ -1,6 +1,7 @@
 package com.mrcrayfish.mightymail.datagen;
 
 import com.mrcrayfish.mightymail.core.ModBlocks;
+import com.mrcrayfish.mightymail.wood.MailboxWoods;
 import net.minecraft.core.registries.SingleRegistryBootstrap;
 import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.data.loot.LootTableProvider;
@@ -30,17 +31,7 @@ public class LootTableGen
      */
     public static void forEachBlock(Consumer<Block> consumer)
     {
-        consumer.accept(ModBlocks.MAIL_BOX_OAK.get());
-        consumer.accept(ModBlocks.MAIL_BOX_SPRUCE.get());
-        consumer.accept(ModBlocks.MAIL_BOX_BIRCH.get());
-        consumer.accept(ModBlocks.MAIL_BOX_JUNGLE.get());
-        consumer.accept(ModBlocks.MAIL_BOX_ACACIA.get());
-        consumer.accept(ModBlocks.MAIL_BOX_DARK_OAK.get());
-        consumer.accept(ModBlocks.MAIL_BOX_MANGROVE.get());
-        consumer.accept(ModBlocks.MAIL_BOX_CHERRY.get());
-        consumer.accept(ModBlocks.MAIL_BOX_CRIMSON.get());
-        consumer.accept(ModBlocks.MAIL_BOX_WARPED.get());
-        consumer.accept(ModBlocks.MAIL_BOX_PALE_OAK.get());
+        MailboxWoods.blocks().forEach(consumer);
         consumer.accept(ModBlocks.POST_BOX.get());
     }
 

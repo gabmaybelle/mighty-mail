@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.1+port.2
+
+- Mailboxes for the woods of Biomes O' Plenty, Ecologics and Wilder Wild. They appear only when that
+  mod is installed, with the usual recipe (planks, a chest and a fence) and a look made from the
+  wood's planks. Nothing changes for worlds without those mods.
+
 ## 1.2.1+port.1
 
 The first release of the unofficial port. It is Mighty Mail 1.2.1 by MrCrayfish, brought to
