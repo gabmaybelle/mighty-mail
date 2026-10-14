@@ -3,11 +3,18 @@ package com.mrcrayfish.mightymail.mail;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.mrcrayfish.mightymail.Config;
+import com.mrcrayfish.mightymail.Constants;
 import com.mrcrayfish.mightymail.blockentity.MailboxBlockEntity;
 import com.mrcrayfish.mightymail.util.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtAccounter;
+import net.minecraft.nbt.NbtIo;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -16,9 +23,14 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.saveddata.SavedDataType;
+import net.minecraft.world.level.storage.LevelResource;
+import net.minecraft.world.level.storage.SavedDataStorage;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -36,18 +48,55 @@ public class DeliveryService extends SavedData
     }));
 
     @SuppressWarnings("DataFlowIssue")
-    // PORT-26.3: saved data is now keyed by an Identifier and stored at data/mighty_mail/delivery_service.dat.
-    // Worlds from 1.21.10 keep their old data/mighty_mail_delivery_service.dat, which is not read automatically.
+    // PORT-26.3: saved data is now keyed by an Identifier, so the file moved from
+    // data/mighty_mail_delivery_service.dat (1.21.10 and older) to data/mighty_mail/delivery_service.dat.
+    // Vanilla never reads the old location, so get() imports it once; see importLegacyData.
     private static final SavedDataType<DeliveryService> TYPE = new SavedDataType<>(Utils.resource("delivery_service"), DeliveryService::new, CODEC, null);
+    private static final String LEGACY_FILE_NAME = "mighty_mail_delivery_service.dat";
 
     public static Optional<DeliveryService> get(MinecraftServer server)
     {
         ServerLevel level = server.getLevel(Level.OVERWORLD);
         if(level != null)
         {
-            return Optional.of(level.getDataStorage().computeIfAbsent(TYPE));
+            SavedDataStorage storage = level.getDataStorage();
+            DeliveryService service = storage.get(TYPE);
+            if(service == null)
+            {
+                // Nothing saved under the 26.3 name yet: carry over a pre-26.3 file if there is one
+                service = importLegacyData(server).orElseGet(DeliveryService::new);
+                storage.set(TYPE, service); // marks it dirty, so it is written to the new file on the next save
+            }
+            return Optional.of(service);
         }
         return Optional.empty();
+    }
+
+    /**
+     * PORT-26.3: reads the delivery service saved by Mighty Mail on Minecraft 1.21.10 and older,
+     * which lived at data/mighty_mail_delivery_service.dat. The old file is left in place as a
+     * backup; once the new file exists this method is never called again for that world.
+     */
+    private static Optional<DeliveryService> importLegacyData(MinecraftServer server)
+    {
+        Path legacyFile = server.getWorldPath(LevelResource.ROOT).resolve("data").resolve(LEGACY_FILE_NAME);
+        if(!Files.isRegularFile(legacyFile))
+            return Optional.empty();
+
+        try
+        {
+            CompoundTag tag = NbtIo.readCompressed(legacyFile, NbtAccounter.unlimitedHeap());
+            RegistryOps<Tag> ops = server.registryAccess().createSerializationContext(NbtOps.INSTANCE);
+            Optional<DeliveryService> service = CODEC.parse(ops, tag.get("data"))
+                .resultOrPartial(error -> Constants.LOG.error("Failed to import pre-26.3 delivery service data from {}: {}", legacyFile, error));
+            service.ifPresent(s -> Constants.LOG.info("Imported pre-26.3 delivery service data ({} mailboxes) from {}", s.mailboxes.size(), legacyFile));
+            return service;
+        }
+        catch(IOException e)
+        {
+            Constants.LOG.error("Failed to read pre-26.3 delivery service data from {}", legacyFile, e);
+            return Optional.empty();
+        }
     }
 
     private final Map<Pair<Identifier, BlockPos>, Mailbox> locator = new HashMap<>();
