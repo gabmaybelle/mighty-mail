@@ -136,6 +136,44 @@ Run each on Fabric and on NeoForge, on a dedicated server with two players (done
 - [ ] Modrinth: tick the AI-generated content disclosure; write the description yourself; use real screenshots; list Framework and Fabric API as dependencies; upload Fabric and NeoForge jars as separate versions. (Checklist in `docs/MODRINTH.md`.)
 - [ ] Consider messaging MrCrayfish before publishing.
 
+### Phase 5: Modded wood types (after the first release)
+
+Decided 2026-10-14 (Gabby): a built-in compat list, not a config or runtime packs, starting with the
+wood mods in her packs, shipped as the first post-release version.
+
+**Why a list.** Every mailbox is its own block with a hand-painted 32x32 texture, so nothing is
+data-driven today. A "works with any wood mod" version needs runtime-generated resources on both
+loaders (several sessions, load-order risk); Every Compat would do it with palette-swapped textures
+but has no 26.x release (Moonlight stops at 26.1.2). Revisit both later.
+
+**Woods (planks ids verified in the 26.3 jars):**
+
+| Mod (id) | Woods |
+|---|---|
+| Biomes O' Plenty (`biomesoplenty`) | dead, empyreal, fir, hellbark, jacaranda, magic, mahogany, maple, origin_oak, palm, pine, redwood, umbran, willow |
+| Ecologics (`ecologics`) | azalea, coconut, flowering_azalea, maple, walnut |
+| Wilder Wild (`wilderwild`) | baobab, cypress, maple, palm, willow |
+
+Block ids must carry the mod to avoid clashes (three mods have `maple`): `mighty_mail:biomesoplenty_maple_mail_box`.
+
+**Design.**
+1. A table in `common` (`WoodCompat`): mod id, wood name, planks block id, display name. One place to add a mod.
+2. Texture: no hand-painted sheet exists for modded woods, so a second model template whose faces use the
+   wood's planks texture (`<mod>:block/<wood>_planks`) plus one shared overlay texture for the slot and flag.
+   Try it on oak first and compare with MrCrayfish's model before committing to the look.
+3. Registration only when the mod is loaded. Check first how Framework's `@RegistryContainer` scan treats a
+   null or list field; if it can't, register compat blocks through `IPlatformHelper` (Fabric `Registry.register`,
+   NeoForge `DeferredRegister`) instead of Framework.
+4. Datagen loops over the table: block state, block and item model, loot table, mineable tag, lang, and the
+   recipe. Recipes need a load condition so a missing mod doesn't error: Fabric `withConditions`
+   (`ResourceConditions.allModsLoaded`), NeoForge `ModLoadedCondition` through its recipe output.
+5. Creative tab already lists every registered block of this namespace, so nothing to do there; the list
+   in the post box is per mailbox, not per block type.
+6. Tests: the Phase 3 scripts with the mod present (place, name, send, flag, break) and without it (no
+   errors, no missing textures, the recipe absent). Each of the three mods is in `tools/.cache/modrinth`.
+
+Version `1.2.1+port.2`, or `1.3.0` if MrCrayfish's version line is left behind.
+
 ---
 
 ## Working rules for Claude Code
