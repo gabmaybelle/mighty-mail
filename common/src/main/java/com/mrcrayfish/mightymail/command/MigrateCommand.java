@@ -9,7 +9,6 @@ import com.mrcrayfish.mightymail.mail.DeliveryService;
 import com.mrcrayfish.mightymail.mail.IMailbox;
 import com.mrcrayfish.mightymail.mail.Mailbox;
 import net.minecraft.ChatFormatting;
-import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.Direction;
@@ -19,6 +18,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Util;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -38,7 +38,7 @@ public class MigrateCommand
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher)
     {
         dispatcher.register(Commands.literal("mighty_mail:migrate")
-            .requires(source -> source.hasPermission(2) && source.isPlayer())
+            .requires(source -> Commands.LEVEL_GAMEMASTERS.check(source.permissions()) && source.isPlayer())
             .executes(context -> {
                 ServerPlayer player = context.getSource().getPlayer();
                 if(player != null) {
@@ -51,7 +51,7 @@ public class MigrateCommand
                 return 0;
             }));
         dispatcher.register(Commands.literal("mighty_mail:confirm")
-            .requires(source -> source.hasPermission(2) && source.isPlayer())
+            .requires(source -> Commands.LEVEL_GAMEMASTERS.check(source.permissions()) && source.isPlayer())
             .executes(context -> {
                 ServerPlayer player = context.getSource().getPlayer();
                 if(player != null && PENDING.containsKey(player.getUUID())) {

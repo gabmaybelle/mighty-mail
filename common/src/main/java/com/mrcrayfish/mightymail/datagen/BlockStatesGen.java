@@ -10,11 +10,12 @@ import net.minecraft.client.data.models.blockstates.BlockModelDefinitionGenerato
 import net.minecraft.client.data.models.blockstates.MultiVariantGenerator;
 import net.minecraft.client.data.models.blockstates.PropertyDispatch;
 import net.minecraft.client.data.models.model.*;
-import net.minecraft.client.renderer.block.model.Variant;
+import net.minecraft.client.renderer.block.dispatch.Variant;
 import net.minecraft.client.renderer.item.ClientItem;
+import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.random.WeightedList;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
@@ -27,7 +28,7 @@ import static net.minecraft.client.data.models.BlockModelGenerators.*;
 @SuppressWarnings("UnstableApiUsage")
 public class BlockStatesGen extends FrameworkGenerator
 {
-    public BlockStatesGen(Map<Block, BlockModelDefinitionGenerator> generators, Map<Item, ClientItem> items, Map<ResourceLocation, ModelInstance> models)
+    public BlockStatesGen(Map<Block, BlockModelDefinitionGenerator> generators, Map<Item, ClientItem> items, Map<Identifier, ModelInstance> models)
     {
         super(generators, items, models);
     }
@@ -49,24 +50,24 @@ public class BlockStatesGen extends FrameworkGenerator
         this.postBox(ModBlocks.POST_BOX.get());
     }
 
-    private ResourceLocation woodParticle(WoodType type)
+    private Material woodParticle(WoodType type)
     {
-        return ResourceLocation.withDefaultNamespace("block/" + type.name() + "_planks");
+        return new Material(Identifier.withDefaultNamespace("block/" + type.name() + "_planks"));
     }
 
-    private ResourceLocation blockTexture(Block block)
+    private Material blockTexture(Block block)
     {
-        ResourceLocation name = BuiltInRegistries.BLOCK.getKey(block);
-        return ResourceLocation.fromNamespaceAndPath(name.getNamespace(), "block/" + name.getPath());
+        Identifier name = BuiltInRegistries.BLOCK.getKey(block);
+        return new Material(Identifier.fromNamespaceAndPath(name.getNamespace(), "block/" + name.getPath()));
     }
 
     private void registerItemWithModelFromMultiVariant(Block block, MultiVariant variant)
     {
-        ResourceLocation location = variant.variants().unwrap().getFirst().value().modelLocation();
+        Identifier location = variant.variants().unwrap().getFirst().value().modelLocation();
         this.items.put(block.asItem(), this.createClientItem(ItemModelUtils.plainModel(location)));
     }
     
-    private Variant plainModel(ResourceLocation location)
+    private Variant plainModel(Identifier location)
     {
         return new Variant(location);
     }
@@ -76,7 +77,7 @@ public class BlockStatesGen extends FrameworkGenerator
         return new MultiVariant(WeightedList.of(variant));
     }
     
-    private MultiVariant plainVariant(ResourceLocation location)
+    private MultiVariant plainVariant(Identifier location)
     {
         return this.variant(this.plainModel(location));
     }

@@ -8,7 +8,7 @@ import com.mrcrayfish.framework.api.config.IntProperty;
 import com.mrcrayfish.framework.api.config.ListProperty;
 import com.mrcrayfish.framework.api.config.validate.Validator;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * Author: MrCrayfish
@@ -63,11 +63,11 @@ public class Config
         public final ListProperty<String> allowedDimensions = ListProperty.create(ListProperty.STRING, new Validator<>() {
             @Override
             public boolean test(String value) {
-                return ResourceLocation.read(value).isSuccess();
+                return Identifier.tryParse(value) != null;
             }
             @Override
             public Component getHint() {
-                return Component.literal("Must a valid ResourceLocation, e.g. \"namespace:path\"");
+                return Component.literal("Must a valid Identifier, e.g. \"namespace:path\"");
             }
         });
     }
