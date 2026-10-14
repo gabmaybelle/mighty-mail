@@ -19,6 +19,17 @@ import com.mrcrayfish.mightymail.network.message.MessageSetMailboxName;
 import com.mrcrayfish.mightymail.network.play.ServerPlayHandler;
 import com.mrcrayfish.mightymail.wood.MailboxWoods;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
+import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.client.renderer.block.BlockStateModelSet;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
+import net.minecraft.util.RandomSource;
+import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.storage.loot.LootTable;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestServerContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContext;
@@ -62,6 +73,7 @@ public class MightyMailClientTest implements FabricClientGameTest
     private static final BlockPos MAILBOX = new BlockPos(3, 71, 0);
     private static final BlockPos SPARE = new BlockPos(-3, 71, 0);
     private static final BlockPos GHOST = new BlockPos(0, 71, 4);
+    private static final BlockPos COMPAT = new BlockPos(0, 71, -4);
     private final List<String> failures = new ArrayList<>();
 
     @Override
@@ -78,6 +90,7 @@ public class MightyMailClientTest implements FabricClientGameTest
             this.openAndUnpack(ctx, server);
             this.wrongInputs(server);
             this.breakWithMail(ctx, server);
+            this.woodMod(ctx, server);
         }
         if(!this.failures.isEmpty())
         {
@@ -99,7 +112,55 @@ public class MightyMailClientTest implements FabricClientGameTest
         });
         this.check(server.computeOnServer(s -> DeliveryService.get(s).isPresent()), "the delivery service exists in a new world");
         this.check(server.computeOnServer(s -> DeliveryService.get(s).map(d -> d.getMailboxes().isEmpty()).orElse(false)), "a new world starts with no mailboxes");
-        this.check(MailboxWoods.registered().size() == MailboxWoods.VANILLA.size(), "the eleven vanilla mailboxes are registered and no compat ones (no wood mod here)");
+        long compatHere = MailboxWoods.COMPAT.stream().filter(wood -> FabricLoader.getInstance().isModLoaded(wood.requiredMod())).count();
+        this.check(MailboxWoods.registered().size() == MailboxWoods.VANILLA.size() + compatHere,
+            "the eleven vanilla mailboxes are registered plus one per compat wood whose mod is here (" + compatHere + ")");
+    }
+
+    /**
+     * With Biomes O' Plenty installed ({@code -PtestBop}): its mailboxes exist with a recipe, a loot
+     * table and a real texture, and one takes a name and mail like a vanilla one. Without it, the
+     * section is skipped and the check above has already shown that none of them exist.
+     */
+    private void woodMod(ClientGameTestContext ctx, TestServerContext server)
+    {
+        if(!FabricLoader.getInstance().isModLoaded("biomesoplenty"))
+        {
+            Constants.LOG.info("[test] Biomes O' Plenty is not installed; the wood-mod section is skipped (run with -PtestBop)");
+            return;
+        }
+        Identifier firId = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "biomesoplenty_fir_mail_box");
+        this.check(BuiltInRegistries.BLOCK.containsKey(firId) && BuiltInRegistries.ITEM.containsKey(firId), "the fir mailbox block and item exist");
+        this.check(server.computeOnServer(s -> s.getRecipeManager().byKey(ResourceKey.create(Registries.RECIPE, firId)).isPresent()), "the fir mailbox has its crafting recipe (from the built-in pack)");
+        this.check(server.computeOnServer(s -> s.reloadableRegistries().getLootTable(ResourceKey.create(Registries.LOOT_TABLE, Identifier.fromNamespaceAndPath(Constants.MOD_ID, "blocks/biomesoplenty_fir_mail_box"))) != LootTable.EMPTY), "the fir mailbox has its loot table");
+        this.check(ctx.computeOnClient(mc -> {
+            BlockStateModelSet models = mc.getModelManager().getBlockStateModelSet();
+            BlockState fir = MailboxWoods.block("biomesoplenty_fir").defaultBlockState();
+            BlockStateModel model = models.get(fir);
+            if(model == models.missingModel() || models.getParticleMaterial(fir).sprite().contents().name().equals(MissingTextureAtlasSprite.getLocation()))
+                return false;
+            // Every face of every part must have a real sprite: a planks texture the wood mod renamed shows up here
+            List<BlockStateModelPart> parts = new ArrayList<>();
+            model.collectParts(RandomSource.create(42), parts);
+            List<Direction> sides = new ArrayList<>(List.of(Direction.values()));
+            sides.add(null);
+            return !parts.isEmpty() && parts.stream().flatMap(part -> sides.stream().flatMap(side -> part.getQuads(side).stream()))
+                .noneMatch(quad -> quad.materialInfo().sprite().contents().name().equals(MissingTextureAtlasSprite.getLocation()));
+        }), "the fir mailbox has a real model and texture (the planks-mapped model resolved)");
+        server.runOnServer(s -> {
+            ServerLevel level = s.overworld();
+            ServerPlayer player = player(s);
+            placeAsPlayer(level, player, COMPAT, MailboxWoods.block("biomesoplenty_fir").defaultBlockState());
+            DeliveryService service = DeliveryService.get(s).orElseThrow();
+            Mailbox fir = service.getMailboxAtPosition(level, COMPAT).orElseThrow();
+            ServerPlayHandler.handleMessageSetMailboxName(new MessageSetMailboxName(COMPAT, "Fir Box"), player);
+            this.check(fir.customName().map("Fir Box"::equals).orElse(false), "a fir mailbox takes a name");
+            this.check(service.sendMail(fir.id(), PackageItem.create(NonNullList.withSize(1, new ItemStack(Items.EMERALD, 2)), "Fir mail", "Test")).success(), "mail can be sent to the fir mailbox");
+            player.teleportTo(level, 0.5, 71, 0.5, Set.of(), 180, 10, false);
+        });
+        ctx.waitTicks(40);
+        this.check(server.computeOnServer(s -> s.overworld().getBlockState(COMPAT).getValue(MailboxBlock.ENABLED)), "the fir mailbox's flag goes up on delivery");
+        ctx.takeScreenshot("mighty_mail_bop_fir");
     }
 
     /** Placing a mailbox makes the player its owner; the naming handler sets its name. */

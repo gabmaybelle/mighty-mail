@@ -19,6 +19,18 @@ dependencies {
 
 sourceSets.main.resources.srcDir 'src/generated/resources'
 
+dependencies {
+    // Compatibility run: `./gradlew :fabric:runClientGameTest -PtestBop` plays the in-game test with
+    // Biomes O' Plenty installed (fetched from Modrinth's maven by version id), so the test's wood-mod
+    // section runs: the compat mailboxes exist, craft, drop, render, and take mail. Nothing here is
+    // bundled or required.
+    if (project.hasProperty("testBop")) {
+        runtimeOnly "maven.modrinth:biomes-o-plenty:${test_bop_version}"
+        runtimeOnly "maven.modrinth:terrablender:${test_terrablender_version}"
+        runtimeOnly "maven.modrinth:glitchcore:${test_glitchcore_version}"
+    }
+}
+
 fabricApi {
     configureDataGeneration {
         client = true

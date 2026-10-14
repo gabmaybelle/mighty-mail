@@ -47,6 +47,18 @@ repositories {
         name = 'BlameJared'
         url = 'https://maven.blamejared.com'
     }
+    // Other mods for the compatibility runs of the game test (-PtestBop), fetched by Modrinth version id
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'Modrinth'
+                url = 'https://api.modrinth.com/maven'
+            }
+        }
+        filter {
+            includeGroup 'maven.modrinth'
+        }
+    }
 }
 
 configurations {

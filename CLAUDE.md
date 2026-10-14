@@ -43,7 +43,10 @@ optional Refurbished Furniture jar): `GPR_USER` and `GPR_KEY` in the environment
   flag, open the mailbox and the package, wrong inputs, break a mailbox with mail inside. Every
   check logs `[test] ok:` or `[test] FAILED:`; screenshots land in
   `fabric/build/run/clientGameTest/screenshots`. It must pass before a commit, and a new check must
-  be shown to fail once with the thing it checks broken.
+  be shown to fail once with the thing it checks broken. `-PtestBop` runs it with Biomes O' Plenty
+  (from Modrinth, version ids in `gradle.properties`), which switches on the wood-mod section: the
+  compat mailboxes exist, have a recipe and a loot table, render with a real texture, and take mail.
+  CI runs both variants.
 - Not covered by the game test (run by hand with Gabby's local tools when `mail/`, `network/` or
   the screens change): two players on a dedicated server, both loaders, the queue limit for an
   unloaded mailbox, a server restart with queued mail, the pre-26.3 import, and the wood-mod packs
