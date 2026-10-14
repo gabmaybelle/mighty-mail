@@ -48,9 +48,10 @@ public class DeliveryService extends SavedData
     }));
 
     @SuppressWarnings("DataFlowIssue")
-    // PORT-26.3: saved data is now keyed by an Identifier, so the file moved from
-    // data/mighty_mail_delivery_service.dat (1.21.10 and older) to data/mighty_mail/delivery_service.dat.
-    // Vanilla never reads the old location, so get() imports it once; see importLegacyData.
+    // PORT-26.3: saved data is now keyed by an Identifier and each dimension has its own data folder, so
+    // the file moved from <world>/data/mighty_mail_delivery_service.dat (1.21.10 and older) to
+    // <world>/dimensions/minecraft/overworld/data/mighty_mail/delivery_service.dat. Vanilla never reads
+    // the old location, so get() imports it once; see importLegacyData.
     private static final SavedDataType<DeliveryService> TYPE = new SavedDataType<>(Utils.resource("delivery_service"), DeliveryService::new, CODEC, null);
     private static final String LEGACY_FILE_NAME = "mighty_mail_delivery_service.dat";
 
