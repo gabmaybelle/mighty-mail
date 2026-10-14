@@ -12,6 +12,7 @@ displayURL = "${mod_homepage}"
 logoFile = "${mod_id}_banner.png"
 logoBlur = false
 authors = "${mod_author}"
+credits = "Original mod by MrCrayfish (${mod_upstream}); ${mod_contributors}"
 description = "${mod_desc}"
 
 [[accessTransformers]]
