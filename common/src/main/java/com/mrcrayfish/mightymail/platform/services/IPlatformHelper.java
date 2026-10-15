@@ -12,7 +12,7 @@ import java.util.function.Consumer;
 public interface IPlatformHelper
 {
     /**
-     * Adds items to a creative tab. {@link CreativeModeTab.Output} is protected since 26.x, so the
+     * Adds items to a creative tab. {@code CreativeModeTab.Output} is protected since 26.x, so the
      * display generator can only be written where the loader has widened it.
      */
     void displayItemsAcceptor(CreativeModeTab.Builder builder, Consumer<Consumer<ItemLike>> consumer);

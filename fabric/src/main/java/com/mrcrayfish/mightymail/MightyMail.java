@@ -2,8 +2,8 @@ package com.mrcrayfish.mightymail;
 
 import com.mrcrayfish.framework.FrameworkSetup;
 import com.mrcrayfish.mightymail.datagen.CompatPackGen;
-import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
-import net.fabricmc.fabric.api.resource.ResourcePackActivationType;
+import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
+import net.fabricmc.fabric.api.resource.v1.pack.PackActivationType;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.chat.Component;
 import com.mrcrayfish.mightymail.wood.MailboxWoods;
@@ -24,8 +24,8 @@ public class MightyMail implements ModInitializer
             {
                 if(FabricLoader.getInstance().isModLoaded(modId))
                 {
-                    ResourceManagerHelper.registerBuiltinResourcePack(CompatPackGen.packId(modId), container,
-                        Component.literal("Mighty Mail: " + modId), ResourcePackActivationType.ALWAYS_ENABLED);
+                    ResourceLoader.registerBuiltinPack(CompatPackGen.packId(modId), container,
+                        Component.literal("Mighty Mail: " + modId), PackActivationType.ALWAYS_ENABLED);
                 }
             }
         });

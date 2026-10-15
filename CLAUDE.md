@@ -40,7 +40,9 @@ optional Refurbished Furniture jar): `GPR_USER` and `GPR_KEY` in the environment
 - `./gradlew :fabric:runClientGameTest`: the in-game test (`fabric/src/gametest`, about two minutes,
   opens a real game window). One flat world: place and name a mailbox through the real server
   handlers, open the post box screen on the client, send through the send handler, delivery and
-  flag, open the mailbox and the package, wrong inputs, break a mailbox with mail inside. Every
+  flag, open the mailbox and the package, wrong inputs, break a mailbox with mail inside, the
+  queue limit, then leave and reopen the world twice (a restart with mail waiting, and once more
+  with the delivery file moved to its pre-26.3 location, which proves the import). Every
   check logs `[test] ok:` or `[test] FAILED:`; screenshots land in
   `fabric/build/run/clientGameTest/screenshots`. It must pass before a commit, and a new check must
   be shown to fail once with the thing it checks broken. `-PtestBop` runs it with Biomes O' Plenty
@@ -48,9 +50,11 @@ optional Refurbished Furniture jar): `GPR_USER` and `GPR_KEY` in the environment
   compat mailboxes exist, have a recipe and a loot table, render with a real texture, and take mail.
   CI runs both variants.
 - Not covered by the game test (run by hand with Gabby's local tools when `mail/`, `network/` or
-  the screens change): two players on a dedicated server, both loaders, the queue limit for an
-  unloaded mailbox, a server restart with queued mail, the pre-26.3 import, and the wood-mod packs
-  on a server. The checklist is in MIGHTY-MAIL-PORTING.md (Phase 3 and Phase 5).
+  the screens change): two players on a dedicated server, anything on NeoForge, and the wood-mod
+  packs on a server. The checklist is in MIGHTY-MAIL-PORTING.md (Phase 3 and Phase 5).
+- The game test's save checks can't be "proven" by dropping a `setDirty()` call: the delivery
+  service is one saved-data object, and placing a mailbox already marks it dirty. Break the
+  codec (or the import) instead.
 
 CI (`.github/workflows/build.yml`) builds both loaders and runs the game test on every push; it
 needs the `GPR_TOKEN` repository secret.
@@ -75,7 +79,7 @@ needs the `GPR_TOKEN` repository secret.
 - **No render-layer registration.** Since 26.x the chunk layer comes from the texture's transparency.
 - **Mailboxes of other wood mods** are rows in `MailboxWoods.COMPAT` with a `requiredMod`. They register
   only when that mod is loaded, and their JSON lives in a built-in pack the loaders enable only then
-  (Fabric `registerBuiltinResourcePack`, NeoForge `AddPackFindersEvent`), so a missing mod never
+  (Fabric `ResourceLoader.registerBuiltinPack`, NeoForge `AddPackFindersEvent`), so a missing mod never
   produces errors. Adding a mod: add rows, run datagen, test with the mod's jar in a game and once
   without it. The compat JSON mirrors what the vanilla providers write for oak; if a vanilla format
   changes, compare with the generated oak files.

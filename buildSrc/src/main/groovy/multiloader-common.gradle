@@ -144,7 +144,7 @@ tasks.withType(JavaCompile).configureEach {
 publishing {
     publications {
         register('mavenJava', MavenPublication) {
-            artifactId base.archivesName.get()
+            artifactId = base.archivesName.get()
             from components.java
 
             // Exclude these from the published pom since it causes errors

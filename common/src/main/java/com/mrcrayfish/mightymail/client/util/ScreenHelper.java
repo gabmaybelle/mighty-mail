@@ -10,7 +10,6 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.level.Level;
 
 import java.util.Collection;
 import java.util.List;
@@ -47,7 +46,7 @@ public class ScreenHelper
     /**
      * Splits the given string into separate lines, which is determined by the maximum width. Unlike
      * vanilla utilities, this method returns a list of components. This can be used to add additional
-     * lines using {@link net.minecraft.world.item.Item#appendHoverText(ItemStack, Level, List, TooltipFlag)}
+     * lines using {@link net.minecraft.world.item.Item#appendHoverText(ItemStack, net.minecraft.world.item.Item.TooltipContext, net.minecraft.world.item.component.TooltipDisplay, java.util.function.Consumer, TooltipFlag)}
      *
      * @param text     the text to split
      * @param maxWidth the maximum width of a line

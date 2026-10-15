@@ -1,5 +1,6 @@
 package com.mrcrayfish.mightymail.gametest;
 
+import com.mrcrayfish.mightymail.Config;
 import com.mrcrayfish.mightymail.Constants;
 import com.mrcrayfish.mightymail.block.MailboxBlock;
 import com.mrcrayfish.mightymail.blockentity.MailboxBlockEntity;
@@ -33,6 +34,7 @@ import net.minecraft.world.level.storage.loot.LootTable;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestServerContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContext;
+import net.fabricmc.fabric.api.client.gametest.v1.world.TestWorldSave;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
@@ -51,11 +53,16 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 /**
  * The mod in a real game: {@code ./gradlew :fabric:runClientGameTest}. One flat world, one player,
@@ -63,9 +70,11 @@ import java.util.UUID;
  * naming screen uses, open the post box (the real screen, on the client), send a package through
  * the send handler, watch the delivery tick put it in the mailbox and raise the flag, open the
  * mailbox (flag down), open the package, and break a mailbox with mail inside. A few wrong inputs
- * are tried too (a name that is too long, a mailbox that does not exist). Screenshots land in
- * fabric/build/run/clientGameTest/screenshots. Every check is listed at the end; the test fails if
- * any of them did.
+ * are tried too (a name that is too long, a mailbox that does not exist, more mail than the queue
+ * allows). The world is then left and opened again twice: once as it is (a server restart) and once
+ * with the delivery service file moved to where Mighty Mail on 1.21.10 kept it (a world from the
+ * original mod). Screenshots land in fabric/build/run/clientGameTest/screenshots. Every check is
+ * listed at the end; the test fails if any of them did.
  */
 public class MightyMailClientTest implements FabricClientGameTest
 {
@@ -74,13 +83,16 @@ public class MightyMailClientTest implements FabricClientGameTest
     private static final BlockPos SPARE = new BlockPos(-3, 71, 0);
     private static final BlockPos GHOST = new BlockPos(0, 71, 4);
     private static final BlockPos COMPAT = new BlockPos(0, 71, -4);
+    private static final BlockPos LIMIT = new BlockPos(-4, 71, 4);
     private final List<String> failures = new ArrayList<>();
 
     @Override
     public void runTest(ClientGameTestContext ctx)
     {
+        TestWorldSave save;
         try(TestSingleplayerContext world = ctx.worldBuilder().create())
         {
+            save = world.getWorldSave();
             world.getConnection().waitForChunksRender();
             TestServerContext server = world.getServer();
             this.platform(server);
@@ -92,7 +104,10 @@ public class MightyMailClientTest implements FabricClientGameTest
             this.wrongInputs(server);
             this.breakWithMail(ctx, server);
             this.woodMod(ctx, server);
+            this.queueLimit(server);
         }
+        this.restart(ctx, save);
+        this.legacyImport(ctx, save);
         if(!this.failures.isEmpty())
         {
             throw new AssertionError(this.failures.size() + " check(s) failed:\n - " + String.join("\n - ", this.failures));
@@ -348,6 +363,111 @@ public class MightyMailClientTest implements FabricClientGameTest
             boolean dropped = level.getEntitiesOfClass(ItemEntity.class, new AABB(GHOST).inflate(3)).stream().anyMatch(e -> e.getItem().is(ModItems.PACKAGE.get()));
             this.check(dropped, "the mail that was waiting for it is dropped at its position, not lost");
         });
+    }
+
+    /**
+     * The queue limit from the config: with mailQueueSize = 2, a full mailbox takes two waiting
+     * packages and refuses the third with the "queue full" message. The mailbox is left full with
+     * its two packages waiting, for the restart below.
+     */
+    private void queueLimit(TestServerContext server)
+    {
+        server.runOnServer(s -> {
+            ServerLevel level = s.overworld();
+            placeAsPlayer(level, player(s), LIMIT, MailboxWoods.block("birch").defaultBlockState());
+            DeliveryService service = DeliveryService.get(s).orElseThrow();
+            Mailbox mailbox = service.getMailboxAtPosition(level, LIMIT).orElseThrow();
+            MailboxBlockEntity entity = (MailboxBlockEntity) level.getBlockEntity(LIMIT);
+            for(int i = 0; i < entity.getContainerSize(); i++)
+                entity.setItem(i, new ItemStack(Items.STONE, 64));
+            int configured = Config.SERVER.deliveryQueueSize.get();
+            Config.SERVER.deliveryQueueSize.set(2);
+            try
+            {
+                ItemStack pack = PackageItem.create(NonNullList.withSize(1, new ItemStack(Items.BREAD)), "Waiting", "Test");
+                this.check(service.sendMail(mailbox.id(), pack.copy()).success() && service.sendMail(mailbox.id(), pack.copy()).success(), "with mailQueueSize = 2, two packages queue for a full mailbox");
+                DeliveryResult third = service.sendMail(mailbox.id(), pack.copy());
+                this.check(!third.success() && third.message().map("gui.mighty_mail.delivery_service.mailbox_queue_full"::equals).orElse(false), "the third package is refused with the \"queue full\" message");
+                this.check(mailbox.queue().size() == 2, "the refused package is not queued");
+            }
+            finally
+            {
+                Config.SERVER.deliveryQueueSize.set(configured);
+            }
+        });
+    }
+
+    /**
+     * Leaving the world and opening it again (a server restart) keeps every mailbox with its name,
+     * owner and waiting mail, and delivery carries on: the full mailbox from the queue check still
+     * has its two packages waiting, and freeing a slot lets the first one in.
+     */
+    private void restart(ClientGameTestContext ctx, TestWorldSave save)
+    {
+        this.check(savedFile(save).isPresent(), "the delivery service is written to the world's saved data");
+        try(TestSingleplayerContext world = save.open())
+        {
+            world.getConnection().waitForChunksRender();
+            TestServerContext server = world.getServer();
+            this.afterReopen(server, 2, "after leaving and reopening the world");
+            server.runOnServer(s -> ((MailboxBlockEntity) s.overworld().getBlockEntity(LIMIT)).setItem(0, ItemStack.EMPTY));
+            ctx.waitTicks(40);
+            this.check(server.computeOnServer(s -> DeliveryService.get(s).orElseThrow().getMailboxAtPosition(s.overworld(), LIMIT).map(m -> m.queue().size() == 1).orElse(false)), "delivery carries on after the restart: freeing a slot lets one waiting package in");
+        }
+    }
+
+    /**
+     * A world from Mighty Mail on 1.21.10 or older keeps its mailboxes. Those versions saved the
+     * delivery service at data/mighty_mail_delivery_service.dat and the game never reads that
+     * location on its own; moving the 26.3 file there and opening the world again is what such a
+     * world looks like, and the mod imports it once.
+     */
+    private void legacyImport(ClientGameTestContext ctx, TestWorldSave save)
+    {
+        Path current = savedFile(save).orElseThrow();
+        Path legacy = save.getSaveDirectory().resolve("data").resolve("mighty_mail_delivery_service.dat");
+        try
+        {
+            Files.createDirectories(legacy.getParent());
+            Files.move(current, legacy);
+        }
+        catch(IOException e)
+        {
+            throw new UncheckedIOException(e);
+        }
+        try(TestSingleplayerContext world = save.open())
+        {
+            world.getConnection().waitForChunksRender();
+            this.afterReopen(world.getServer(), 1, "after importing a pre-26.3 save");
+            this.check(Files.isRegularFile(legacy), "the pre-26.3 file is left in place as a backup");
+        }
+        this.check(savedFile(save).isPresent(), "the imported delivery service is written to the 26.3 file");
+    }
+
+    /** What must survive a reopen: the mailbox's name and owner, and the mail waiting for the full one. */
+    private void afterReopen(TestServerContext server, int waiting, String when)
+    {
+        server.runOnServer(s -> {
+            ServerLevel level = s.overworld();
+            DeliveryService service = DeliveryService.get(s).orElseThrow();
+            Optional<Mailbox> mailbox = service.getMailboxAtPosition(level, MAILBOX);
+            this.check(mailbox.flatMap(Mailbox::customName).map("Test Box"::equals).orElse(false), "the mailbox keeps its name " + when);
+            this.check(mailbox.flatMap(Mailbox::owner).map(player(s).getUUID()::equals).orElse(false), "the mailbox keeps its owner " + when);
+            this.check(service.getMailboxAtPosition(level, LIMIT).map(m -> m.queue().size() == waiting).orElse(false), "the waiting mail is still queued " + when);
+        });
+    }
+
+    /** The delivery service's 26.3 saved-data file, wherever the game keeps it inside the save folder. */
+    private static Optional<Path> savedFile(TestWorldSave save)
+    {
+        try(Stream<Path> files = Files.walk(save.getSaveDirectory()))
+        {
+            return files.filter(file -> file.endsWith(Path.of("mighty_mail", "delivery_service.dat"))).findFirst();
+        }
+        catch(IOException e)
+        {
+            throw new UncheckedIOException(e);
+        }
     }
 
     /** Places a block the way a player does, so the mod's placement hook runs (owner, pending name). */
