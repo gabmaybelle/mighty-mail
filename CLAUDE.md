@@ -49,8 +49,13 @@ optional Refurbished Furniture jar): `GPR_USER` and `GPR_KEY` in the environment
   (from Modrinth, version ids in `gradle.properties`), which switches on the wood-mod section: the
   compat mailboxes exist, have a recipe and a loot table, render with a real texture, and take mail.
   CI runs both variants.
+- `./gradlew :neoforge:runClientTest`: the NeoForge in-game test (`neoforge/src/clienttest`, about
+  two minutes, a real game window): the core of the Fabric test on the NeoForge jar (generated data,
+  place and name, the post box screen and its list, send, delivery and flag, open and unpack, break
+  with mail). Restarts, the import and the wood mods stay in the Fabric test. Any failed check
+  crashes the game at the end, so the task fails. CI runs it once.
 - Not covered by the game test (run by hand with Gabby's local tools when `mail/`, `network/` or
-  the screens change): two players on a dedicated server, anything on NeoForge, and the wood-mod
+  the screens change): two players on a dedicated server, a NeoForge play beyond the test's checks, and the wood-mod
   packs on a server. The checklist is in MIGHTY-MAIL-PORTING.md (Phase 3 and Phase 5).
 - The game test's save checks can't be "proven" by dropping a `setDirty()` call: the delivery
   service is one saved-data object, and placing a mailbox already marks it dirty. Break the

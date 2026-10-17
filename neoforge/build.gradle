@@ -5,6 +5,17 @@ plugins {
     id 'net.neoforged.moddev'
 }
 
+// The in-game test (src/clienttest): part of the mod only in dev runs, never in the jar.
+sourceSets {
+    clienttest {
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.output
+    }
+}
+configurations {
+    clienttestImplementation.extendsFrom implementation
+}
+
 neoForge {
     enable {
         version = neoforge_version
@@ -16,9 +27,13 @@ neoForge {
         accessTransformers.from(at.absolutePath)
     }
 
+    addModdingDependenciesTo(sourceSets.clienttest)
+
     mods {
         "${mod_id}" {
             sourceSet sourceSets.main
+            // The same mod as the main sources, so the test can reach the mod's own classes
+            sourceSet sourceSets.clienttest
         }
     }
 
@@ -40,6 +55,13 @@ neoForge {
         server {
             server()
             programArgument '--nogui'
+        }
+        // `./gradlew :neoforge:runClientTest`: starts the game, makes a flat world, runs the checks in
+        // src/clienttest and closes. A failed check crashes the game, so the task fails. Needs a display.
+        clientTest {
+            client()
+            systemProperty 'mighty_mail.clienttest', 'true'
+            gameDirectory = project.file('build/run/clientTest')
         }
         gameTestServer {
             type = "gameTestServer"
