@@ -10,7 +10,7 @@ local build.
 - [ ] Tick the **AI-generated content** disclosure (the port's code changes were made with Claude Code).
 - [ ] Licence: MIT. Source: https://github.com/gabmaybelle/mighty-mail. Issues: the repo's issue tracker.
 - [ ] Links to the original: https://github.com/MrCrayfish/MightyMail and MrCrayfish's page https://mrcrayfish.com/mods?id=mighty_mail.
-- [ ] Dependencies: **Framework** (required, both loaders) and **Fabric API** (required, Fabric only).
+- [ ] Dependencies: **Fabric API** (required, Fabric only). **Framework** is required on both loaders but is only on CurseForge, so Modrinth can't link it: the description tells players to get it there.
 - [ ] Two versions per release: the Fabric jar and the NeoForge jar, each tagged with its loader and Minecraft 26.3.
 - [x] Real screenshots from a normal world, in `docs/screenshots/`: `mailboxes-by-the-lake.png` (gallery lead), `post-box.png`, `post-box-sent.png`, `naming-a-mailbox.png`, `mailbox-with-packages.png`. 1600x900, no player names in frame.
 - [ ] Gallery/icon: the package icon from the jar is fine; no MrCrayfish branding.
@@ -55,7 +55,7 @@ With Biomes O' Plenty, Ecologics or Wilder Wild installed, their woods get mailb
 ## Requirements
 
 - Minecraft 26.3
-- [Framework](https://modrinth.com/mod/framework) 0.13.27 or newer (MrCrayfish's library mod)
+- [Framework](https://www.curseforge.com/minecraft/mc-mods/framework) 0.13.27 or newer (MrCrayfish's library mod, from CurseForge; the Modrinth app can't add it for you)
 - On Fabric: [Fabric API](https://modrinth.com/mod/fabric-api)
 
 Install the file for your loader together with Framework (and Fabric API on Fabric).
