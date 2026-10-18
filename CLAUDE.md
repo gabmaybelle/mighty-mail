@@ -89,7 +89,7 @@ needs the `GPR_TOKEN` repository secret.
   without it. The compat JSON mirrors what the vanilla providers write for oak; if a vanilla format
   changes, compare with the generated oak files.
 - **Framework scans our registry classes during its own startup**, before our entry point, so
-  `MailboxWoods.ensureRegistered()` runs from `ModBlockEntities`' static initialiser. Registering
+  `MailboxWoods.ensureRegistered()` runs from `ModBlockEntities`' static initializer. Registering
   later crashes every placed mailbox with "Invalid block entity".
 - **In the game test**, the current screen is `mc.gui.screen()` (26.x), block use goes through
   `BlockState.useWithoutItem(level, player, hit)` (the block's own method is protected), and a

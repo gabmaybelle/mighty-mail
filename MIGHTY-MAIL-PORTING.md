@@ -179,7 +179,7 @@ the eleven vanilla rows; `ModBlocks` keeps only the post box; the block entity t
 command and all five datagen providers loop over the table. Mailboxes register through
 `IPlatformHelper.mailboxRegistrar()` on each loader. Found the hard way: Framework scans our registry classes
 in its own startup, before our entry point, so registration is triggered from `ModBlockEntities`' static
-initialiser (first run crashed every existing mailbox with "Invalid block entity"). Proof: datagen output is
+initializer (first run crashed every existing mailbox with "Invalid block entity"). Proof: datagen output is
 byte-for-byte identical to before (174 files), both clients load the old worlds and the creative tab,
 naming works on both loaders, and the Phase 3 part-1 script passes on a fresh Fabric server. Next: step 2,
 the compat rows with per-mod built-in packs.
