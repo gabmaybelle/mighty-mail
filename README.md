@@ -70,5 +70,5 @@ are in [MIGHTY-MAIL-PORTING.md](MIGHTY-MAIL-PORTING.md).
 - Mighty Mail, its code, models and textures: [MrCrayfish](https://github.com/MrCrayfish),
   MIT licence, Copyright (c) 2023 MrCrayfish. See [LICENSE](LICENSE).
 - Framework: MrCrayfish, LGPL-2.1. It is a separate download and is not bundled here.
-- The 26.3 port was made by Gabby with help from Claude, an AI assistant. The port keeps the
+- The 26.3 port was made by Gabby. The port keeps the
   MIT licence.

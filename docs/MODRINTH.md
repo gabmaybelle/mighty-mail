@@ -72,7 +72,7 @@ The mod id is still `mighty_mail`, so the port is a drop-in replacement. The fir
 
 - Mighty Mail, its code, models and textures: [MrCrayfish](https://github.com/MrCrayfish), MIT licence, Copyright (c) 2023 MrCrayfish.
 - Framework: MrCrayfish, LGPL-2.1. Separate download, not bundled.
-- The 26.3 port was made by Gabby with help from Claude, an AI assistant. The port keeps the MIT licence. Source: https://github.com/gabmaybelle/mighty-mail
+- The 26.3 port was made by Gabby. The port keeps the MIT licence. Source: https://github.com/gabmaybelle/mighty-mail
 ```
 
 ## Version notes
