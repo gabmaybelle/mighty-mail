@@ -1,9 +1,9 @@
-# Builds the Fabric and NeoForge jars on every push and pull request, then runs the in-game tests
-# (fabric/src/gametest and neoforge/src/clienttest) on a virtual display, so a broken build or a crash in game shows up
-# straight away. Framework comes from MrCrayfish's GitHub Packages Maven, which needs a GitHub
-# token with read:packages: add it as the repository secret GPR_TOKEN (any GitHub user's token
-# works; the Maven is public but GitHub still asks for a token). Both jars are attached to each
-# run under "Artifacts", and the game test's screenshots alongside them.
+# Builds the NeoForge jar on every push and pull request (this 26.1.2 branch is NeoForge only), then
+# runs the in-game test (neoforge/src/clienttest) on a virtual display, so a broken build or a crash
+# in game shows up straight away. Framework comes from MrCrayfish's GitHub Packages Maven, which
+# needs a GitHub token with read:packages: add it as the repository secret GPR_TOKEN (any GitHub
+# user's token works; the Maven is public but GitHub still asks for a token). The jar is attached to
+# each run under "Artifacts", and the game test's screenshots alongside it.
 
 name: build
 on: [pull_request, push, workflow_dispatch]
@@ -16,15 +16,6 @@ jobs:
     runs-on: ubuntu-24.04
     # A pull request from a branch in this repo is already built by its push; only build forks' twice.
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - variant: 'on its own'
-            test_args: ''
-          - variant: "with Biomes O' Plenty"
-            test_args: '-PtestBop'
-    name: build (${{ matrix.variant }})
     steps:
       - name: checkout repository
         uses: actions/checkout@v6
@@ -40,33 +31,22 @@ jobs:
       - name: install EGL
         run: sudo apt-get update -qq && sudo apt-get install -y -qq libegl1 libegl-mesa0
       # The block states, models, loot tables, recipes and tags are generated, not committed, so
-      # they must be made here first or the jars and the game test have none of them. Gradle
+      # they must be made here first or the jar and the game test have none of them. Gradle
       # refuses datagen and build in one invocation, hence two steps.
       - name: generate data
         env:
           GPR_USER: ${{ github.repository_owner }}
           GPR_KEY: ${{ secrets.GPR_TOKEN }}
           SDL_VIDEO_FORCE_EGL: '1'
-        run: xvfb-run -a ./gradlew :fabric:runDatagen :neoforge:runData
-      - name: build both loaders
+        run: xvfb-run -a ./gradlew :neoforge:runData
+      - name: build
         env:
           GPR_USER: ${{ github.repository_owner }}
           GPR_KEY: ${{ secrets.GPR_TOKEN }}
-        run: ./gradlew :fabric:build :neoforge:build
-      - name: run game test
-        # 26.3 asks for an sRGB-capable window, which Xvfb's GLX can't give, so the game would
-        # hang at startup. Mesa's EGL can; SDL uses it with this set.
-        env:
-          GPR_USER: ${{ github.repository_owner }}
-          GPR_KEY: ${{ secrets.GPR_TOKEN }}
-          SDL_VIDEO_FORCE_EGL: '1'
-        timeout-minutes: 20
-        run: xvfb-run -a ./gradlew :fabric:runClientGameTest ${{ matrix.test_args }}
+        run: ./gradlew :neoforge:build
       - name: run NeoForge game test
-        # The core checks on the NeoForge jar (neoforge/src/clienttest). A failed check crashes the
-        # game, which fails this step; the crash report is uploaded below. Wood mods aren't loaded
-        # here, so it runs only once.
-        if: always() && matrix.variant == 'on its own'
+        # A failed check crashes the game, which fails this step; the crash report is uploaded below.
+        # Mesa's EGL gives the sRGB-capable window the game asks for; SDL uses it with this set.
         env:
           GPR_USER: ${{ github.repository_owner }}
           GPR_KEY: ${{ secrets.GPR_TOKEN }}
@@ -77,19 +57,16 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: Game test screenshots (${{ matrix.variant }})
+          name: Game test screenshots
           path: |
-            fabric/build/run/clientGameTest/screenshots/
             neoforge/build/run/clientTest/screenshots/
             neoforge/build/run/clientTest/crash-reports/
           if-no-files-found: ignore
       - name: capture build artifacts
-        if: matrix.variant == 'on its own'
         uses: actions/upload-artifact@v7
         with:
           name: Artifacts
           path: |
-            fabric/build/libs/*.jar
             neoforge/build/libs/*.jar
             !**/*-sources.jar
             !**/*-javadoc.jar

@@ -8,6 +8,7 @@ import com.mrcrayfish.mightymail.client.ClientMailbox;
 import com.mrcrayfish.mightymail.inventory.PostBoxMenu;
 import com.mrcrayfish.mightymail.mail.DeliveryService;
 import com.mrcrayfish.mightymail.util.VoxelShapeHelper;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.MinecraftServer;
@@ -37,6 +38,8 @@ import java.util.stream.Collectors;
  */
 public class PostBoxBlock extends RotatedBlock implements EntityBlock
 {
+    private static final MapCodec<PostBoxBlock> CODEC = simpleCodec(PostBoxBlock::new);
+
     private final Map<BlockState, VoxelShape> shapes;
 
     public PostBoxBlock(Properties properties)
@@ -105,5 +108,11 @@ public class PostBoxBlock extends RotatedBlock implements EntityBlock
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state)
     {
         return new PostBoxBlockEntity(pos, state);
+    }
+
+    @Override
+    protected MapCodec<PostBoxBlock> codec()
+    {
+        return CODEC;
     }
 }

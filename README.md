@@ -1,11 +1,12 @@
 # Mighty Mail: Unofficial Port
 
 An **unofficial** port of [Mighty Mail](https://github.com/MrCrayfish/MightyMail) by
-[MrCrayfish](https://mrcrayfish.com) to Minecraft **26.3**, for **Fabric** and **NeoForge**.
+[MrCrayfish](https://mrcrayfish.com) to Minecraft **26.1.2**, for **NeoForge**.
+The 26.3 version, for Fabric and NeoForge, is on the `26.3` branch.
 
 MrCrayfish wrote the mod. This repository only carries it forward to a newer Minecraft version.
 It is not affiliated with or endorsed by him, and the original author is not responsible for
-anything here. If the original mod gets its own 26.3 release, use that.
+anything here. If the original mod gets its own 26.1.2 release, use that.
 
 ![Mailboxes in several wood types and a post box on a hillside by a lake](docs/screenshots/mailboxes-by-the-lake.png)
 
@@ -23,12 +24,10 @@ the same way from that wood's planks and fence.
 
 ## Requirements
 
-- Minecraft 26.3
-- [Framework](https://github.com/MrCrayfish/Framework) 0.13.27 or newer (MrCrayfish's library mod)
-- On Fabric: [Fabric API](https://github.com/FabricMC/fabric)
+- Minecraft 26.1.2 with NeoForge
+- [Framework](https://github.com/MrCrayfish/Framework) 0.13.23 or newer (MrCrayfish's library mod)
 
-Install the jar for your loader from the releases page together with Framework (and Fabric API on
-Fabric). The Fabric and NeoForge jars are separate files.
+Install the NeoForge jar from the releases page together with Framework.
 
 ## Upgrading a world from the original mod
 
@@ -70,5 +69,5 @@ are in [MIGHTY-MAIL-PORTING.md](MIGHTY-MAIL-PORTING.md).
 - Mighty Mail, its code, models and textures: [MrCrayfish](https://github.com/MrCrayfish),
   MIT licence, Copyright (c) 2023 MrCrayfish. See [LICENSE](LICENSE).
 - Framework: MrCrayfish, LGPL-2.1. It is a separate download and is not bundled here.
-- The 26.3 port was made by Gabby. The port keeps the
+- The 26.3 port and the 26.1.2 version were made by Gabby. The port keeps the
   MIT licence.

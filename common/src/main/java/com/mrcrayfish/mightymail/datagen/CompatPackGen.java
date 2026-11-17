@@ -150,21 +150,25 @@ public class CompatPackGen implements DataProvider
     private JsonObject lootTable(MailboxWood wood)
     {
         JsonObject condition = new JsonObject();
-        condition.addProperty("type", "minecraft:survives_explosion");
+        condition.addProperty("condition", "minecraft:survives_explosion");
+        JsonArray conditions = new JsonArray();
+        conditions.add(condition);
         JsonObject entry = new JsonObject();
         entry.addProperty("type", "minecraft:item");
         entry.addProperty("name", wood.blockId().toString());
         JsonArray entries = new JsonArray();
         entries.add(entry);
         JsonObject pool = new JsonObject();
-        pool.add("condition", condition);
+        pool.addProperty("bonus_rolls", 0.0);
+        pool.add("conditions", conditions);
         pool.add("entries", entries);
-        pool.addProperty("rolls", 1);
+        pool.addProperty("rolls", 1.0);
         JsonArray pools = new JsonArray();
         pools.add(pool);
         JsonObject root = new JsonObject();
         root.addProperty("type", "minecraft:block");
         root.add("pools", pools);
+        root.addProperty("random_sequence", wood.blockId().getNamespace() + ":blocks/" + wood.blockId().getPath());
         return root;
     }
 
@@ -182,6 +186,7 @@ public class CompatPackGen implements DataProvider
         result.addProperty("id", wood.blockId().toString());
         JsonObject root = new JsonObject();
         root.addProperty("type", "minecraft:crafting_shaped");
+        root.addProperty("category", "misc");
         root.add("key", key);
         root.add("pattern", pattern);
         root.add("result", result);
@@ -196,7 +201,7 @@ public class CompatPackGen implements DataProvider
         criteria.add("has_fence", hasItem(wood.fence().toString()));
         criteria.add("has_plank", hasItem(wood.planks().toString()));
         JsonObject recipeConditions = new JsonObject();
-        recipeConditions.addProperty("recipes", recipeId);
+        recipeConditions.addProperty("recipe", recipeId);
         JsonObject hasRecipe = new JsonObject();
         hasRecipe.add("conditions", recipeConditions);
         hasRecipe.addProperty("trigger", "minecraft:recipe_unlocked");

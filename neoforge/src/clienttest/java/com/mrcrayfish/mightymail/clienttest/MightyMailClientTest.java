@@ -135,9 +135,9 @@ final class MightyMailClientTest
     private static void postBox()
     {
         onServer(s -> use(s.overworld(), player(s), POST_BOX));
-        waitUntil("the post box screen", 100, mc -> mc.gui.screen() instanceof PostBoxScreen);
+        waitUntil("the post box screen", 100, mc -> mc.screen instanceof PostBoxScreen);
         run(mc -> {
-            PostBoxScreen screen = (PostBoxScreen) mc.gui.screen();
+            PostBoxScreen screen = (PostBoxScreen) mc.screen;
             check(screen.getMenu().getMailboxes().stream().map(IMailbox::getCustomName).anyMatch(name -> name.map("Test Box"::equals).orElse(false)), "the post box lists the mailbox by its name");
             check(screen.getMenu().getMailboxes().stream().allMatch(box -> box.getOwner(null).isPresent()), "the list carries the owner (face and name) on the client");
         });
@@ -152,7 +152,7 @@ final class MightyMailClientTest
             check(DeliveryService.get(s).orElseThrow().getMailboxAtPosition(s.overworld(), MAILBOX).map(m -> m.queue().size() == 1).orElse(false), "the package is queued for the mailbox");
             player.closeContainer();
         });
-        waitUntil("the post box screen to close", 100, mc -> !(mc.gui.screen() instanceof PostBoxScreen));
+        waitUntil("the post box screen to close", 100, mc -> !(mc.screen instanceof PostBoxScreen));
     }
 
     /** The delivery tick moves the package into the mailbox and raises the flag. */
@@ -177,7 +177,7 @@ final class MightyMailClientTest
     private static void openAndUnpack()
     {
         onServer(s -> use(s.overworld(), player(s), MAILBOX));
-        waitUntil("the mailbox screen", 100, mc -> mc.gui.screen() != null);
+        waitUntil("the mailbox screen", 100, mc -> mc.screen != null);
         waitTicks(5);
         onServer(s -> {
             ServerLevel level = s.overworld();

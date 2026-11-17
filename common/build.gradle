@@ -20,7 +20,7 @@ neoForge {
 dependencies {
     compileOnly "com.mrcrayfish:framework-common:${framework_version}+${minecraft_version}"
     compileOnly("com.mrcrayfish:refurbished_furniture-common:${refurbished_furniture}+${refurbished_furniture_minecraft_version}") {
-        // PORT-26.3: the 26.2 package declares its own capability names, so Gradle needs this hint to pick a variant
+        // The Refurbished Furniture package declares its own capability names, so Gradle needs this hint to pick a variant
         capabilities { requireCapability("com.mrcrayfish:refurbished_furniture") }
     }
 }

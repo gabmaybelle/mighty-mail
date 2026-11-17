@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Mighty Mail for Minecraft 26.1.2 on NeoForge: everything the 26.3 port has, mailboxes for
+  Biomes O' Plenty, Ecologics and Wilder Wild woods included.
+
 ## 1.2.1+port.2
 
 - Mailboxes for the woods of Biomes O' Plenty, Ecologics and Wilder Wild. They appear only when that

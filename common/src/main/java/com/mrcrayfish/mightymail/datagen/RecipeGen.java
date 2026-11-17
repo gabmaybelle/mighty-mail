@@ -3,50 +3,24 @@ package com.mrcrayfish.mightymail.datagen;
 import com.mrcrayfish.mightymail.core.ModBlocks;
 import com.mrcrayfish.mightymail.wood.MailboxWood;
 import com.mrcrayfish.mightymail.wood.MailboxWoods;
-import net.minecraft.advancements.Advancement;
-import net.minecraft.core.Registry;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.MultiRegistryBootstrap;
-import net.minecraft.core.registries.Registries;
+import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.RecipeCategory;
+import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
-import net.minecraft.data.worldgen.BootstrapContext;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 
-import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 public class RecipeGen extends RecipeProvider
 {
-    public RecipeGen(BootstrapContext<Recipe<?>> recipes, BootstrapContext<Advancement> advancements)
+    public RecipeGen(HolderLookup.Provider provider, RecipeOutput output)
     {
-        super(recipes, advancements);
-    }
-
-    /**
-     * Recipes are registry entries since 26.x, so they are generated as part of the reloadable
-     * registry bootstrap (see {@link RegistriesGen}) rather than by a standalone data provider.
-     */
-    public static MultiRegistryBootstrap create()
-    {
-        return new MultiRegistryBootstrap()
-        {
-            @Override
-            public Set<ResourceKey<? extends Registry<?>>> requestedRegistries()
-            {
-                return Set.of(Registries.RECIPE, Registries.ADVANCEMENT);
-            }
-
-            @Override
-            public void run(BootstrapGetter registries)
-            {
-                new RecipeGen(registries.get(Registries.RECIPE), registries.get(Registries.ADVANCEMENT)).buildRecipes();
-            }
-        };
+        super(provider, output);
     }
 
     @Override
@@ -81,5 +55,25 @@ public class RecipeGen extends RecipeProvider
             .unlockedBy("has_chest", has(Items.CHEST))
             .unlockedBy("has_fence", has(fence))
             .save(this.output);
+    }
+
+    public static final class Runner extends RecipeProvider.Runner
+    {
+        public Runner(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider)
+        {
+            super(output, lookupProvider);
+        }
+
+        @Override
+        protected RecipeProvider createRecipeProvider(HolderLookup.Provider provider, RecipeOutput output)
+        {
+            return new RecipeGen(provider, output);
+        }
+
+        @Override
+        public String getName()
+        {
+            return "Mighty Mail Recipes";
+        }
     }
 }

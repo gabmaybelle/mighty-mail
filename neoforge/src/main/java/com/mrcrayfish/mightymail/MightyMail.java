@@ -7,7 +7,6 @@ import com.mrcrayfish.mightymail.platform.NeoForgePlatformHelper;
 import com.mrcrayfish.mightymail.wood.MailboxWoods;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
-import net.neoforged.neoforge.common.data.DatapackBuiltinEntriesProvider;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
@@ -66,8 +65,8 @@ public class MightyMail
 
         DataGenerator generator = event.getGenerator();
         PackOutput output = generator.getPackOutput();
-        // Recipes and loot tables are registry entries since 26.x, generated from the reloadable registry set
-        event.addProvider(DatapackBuiltinEntriesProvider.forReloadableLayer(output, Constants.MOD_ID, event.getWorldLookupProvider(), event.getReloadableLookupProvider(), RegistriesGen.RELOADABLE, Set.of(Constants.MOD_ID)));
+        event.createProvider(RecipeGen.Runner::new);
+        event.createProvider(LootTableGen::new);
         event.addProvider(new FrameworkModelProvider(output, BlockStatesGen::new, ItemModelsGen::new));
         for(String modId : MailboxWoods.compatMods())
         {

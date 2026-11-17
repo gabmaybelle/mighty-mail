@@ -65,5 +65,6 @@ def includeModloader(String name) {
 
 rootProject.name = 'MightyMail'
 include("common")
-includeModloader("fabric")
+// 26.1.2 branch: NeoForge only
+// includeModloader("fabric")
 includeModloader("neoforge")

@@ -100,7 +100,7 @@ final class ClientTest
     {
         run(mc -> {
             Constants.LOG.info("[test] screenshot: {}", name);
-            Screenshot.grab(mc, false);
+            Screenshot.grab(mc.gameDirectory, mc.getMainRenderTarget(), message -> {});
         });
         waitTicks(2);
     }
@@ -123,13 +123,13 @@ final class ClientTest
     static void createWorld(String baseName)
     {
         String name = baseName + "-" + System.currentTimeMillis();
-        waitUntil("the title screen", 2400, mc -> mc.gui.overlay() == null && mc.gui.screen() != null);
+        waitUntil("the title screen", 2400, mc -> mc.getOverlay() == null && mc.screen != null);
         run(mc -> mc.createWorldOpenFlows().createFreshLevel(name,
             new LevelSettings(name, GameType.CREATIVE, new LevelSettings.DifficultySettings(Difficulty.PEACEFUL, false, false), true, WorldDataConfiguration.DEFAULT),
             new WorldOptions(1L, false, false),
             registries -> registries.lookupOrThrow(Registries.WORLD_PRESET).getOrThrow(WorldPresets.FLAT).value().createWorldDimensions(),
-            mc.gui.screen()));
-        waitUntil("the player in the new world", 2400, mc -> mc.player != null && mc.level != null && mc.gui.screen() == null);
+            mc.screen));
+        waitUntil("the player in the new world", 2400, mc -> mc.player != null && mc.level != null && mc.screen == null);
         // Time for the chunks around the player to arrive and draw
         waitTicks(60);
     }

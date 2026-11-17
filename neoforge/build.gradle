@@ -83,9 +83,9 @@ tasks.named('jar') {
 
 dependencies {
     implementation "com.mrcrayfish:framework-neoforge:${framework_version}+${minecraft_version}"
-    // PORT-26.3: Refurbished Furniture has no 26.3 build yet; compile against the 26.2 jar
+    // Refurbished Furniture is optional (the migrate command), so compile-only
     compileOnly("com.mrcrayfish:refurbished_furniture-neoforge:${refurbished_furniture}+${refurbished_furniture_minecraft_version}") {
-        // PORT-26.3: the 26.2 package declares its own capability names, so Gradle needs this hint to pick a variant
+        // The Refurbished Furniture package declares its own capability names, so Gradle needs this hint to pick a variant
         capabilities { requireCapability("com.mrcrayfish:refurbished_furniture") }
     }
 }

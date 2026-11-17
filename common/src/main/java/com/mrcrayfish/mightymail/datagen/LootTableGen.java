@@ -2,10 +2,11 @@ package com.mrcrayfish.mightymail.datagen;
 
 import com.mrcrayfish.mightymail.core.ModBlocks;
 import com.mrcrayfish.mightymail.wood.MailboxWoods;
-import net.minecraft.core.registries.SingleRegistryBootstrap;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.data.PackOutput;
 import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.data.loot.LootTableProvider;
-import net.minecraft.data.loot.LootTableSubProvider;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.storage.loot.LootTable;
@@ -13,17 +14,15 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-public class LootTableGen
+public class LootTableGen extends LootTableProvider
 {
-    /**
-     * Loot tables are registry entries since 26.x, so they are generated as part of the reloadable
-     * registry bootstrap (see {@link RegistriesGen}) rather than by a standalone data provider.
-     */
-    public static SingleRegistryBootstrap<LootTable> create()
+    public LootTableGen(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider)
     {
-        return new LootTableProvider(Set.of(), List.of(new LootTableProvider.SubProviderEntry(Blocks::new, LootContextParamSets.BLOCK)));
+        super(output, Set.of(), List.of(new SubProviderEntry(Blocks::new, LootContextParamSets.BLOCK)), lookupProvider);
     }
 
     /**
@@ -37,9 +36,9 @@ public class LootTableGen
 
     private static class Blocks extends BlockLootSubProvider
     {
-        private Blocks(LootTableSubProvider.Context context)
+        private Blocks(HolderLookup.Provider provider)
         {
-            super(Set.of(), FeatureFlags.REGISTRY.allFlags(), context);
+            super(Set.of(), FeatureFlags.REGISTRY.allFlags(), provider);
         }
 
         @Override
@@ -47,12 +46,12 @@ public class LootTableGen
 
         /**
          * The vanilla implementation checks every registered block for a loot table, which fails on
-         * vanilla blocks, so the tables for this mod's blocks are handed to the output directly.
+         * vanilla blocks, so the tables for this mod's blocks are handed to the consumer directly.
          */
         @Override
-        public void run()
+        public void generate(BiConsumer<ResourceKey<LootTable>, LootTable.Builder> consumer)
         {
-            forEachBlock(block -> this.output.accept(block.getLootTable().orElseThrow(), this.createSingleItemTable(block)));
+            forEachBlock(block -> consumer.accept(block.getLootTable().orElseThrow(), this.createSingleItemTable(block)));
         }
     }
 }
